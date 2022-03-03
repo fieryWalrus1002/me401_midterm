@@ -10,3 +10,6 @@ https://github.com/LowPowerLab/RFM69
 ### chipkit software PWM servo library
 https://github.com/chipKIT32/chipKIT-core/tree/master/pic32/libraries/SoftPWMServo
 
+<B>test of bold </B>
+Digilent chipKit Motorshield reference manual
+https://digilent.com/reference/chipkit_shield_motor/refmanual
