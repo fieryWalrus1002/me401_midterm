@@ -2,10 +2,10 @@
 #include "ME401_Radio.h"
 #include "ME401_PID.h"
 #include "dcmotor.h"
-#include "navigation.h"
 #include "ir_dist.h"
+#include "navigation.h"
 
-#define TESTSTATE DISTSWEEP
+#define TESTSTATE AVOID
 
 enum robotStates {
   ATTACK, // search for balls in neutral and opposing base
@@ -52,12 +52,15 @@ void test(){
       testMotors();
       break;
     case AVOID:
-      // 
+      avoidanceTest(); // tests how the robot avoids collisions while moving forward
+      break;
     default:
       Serial.println("no test state");
       break;
   }
 }
+
+
 
 /* print out the self pos in a csv style format for debug */
 void printSelfPose(){
@@ -114,6 +117,7 @@ void changeState(){
 void setup() {
   Serial.begin(115200);
   Serial.println("serial begin");
+  
   initDcMotors(); // DC motors for locomotion
   Serial.println("dc motors online");
   initIrSensor(); // Sharp IR distance sensor initialize
@@ -128,45 +132,47 @@ void setup() {
 }
 
 void loop() {
-//  checkStatus(); // check the status of the game environment
+//  while (robotOn == false){
+//    checkOnState();// do nothing but check buttons
+//    Serial.print(".");
+//  }
+
+//  checkOnState();
+    //  checkStatus(); // check the status of the game environment
   changeState(); // check to see if a state change is called for
   handleState(); // execute current state function
-
-
-  // TODO: This is where you implement all of your code for your robot. 
-  // REMEMBER: You must implement a state machine and have a good diagram of that state machine.
-  //           I HIGHLY recommend that you discuss this with the TAs and professor before starting to code.
-
-
-  // Here are a few examples of some of the core functionalities of the robot. If things ever stop working, I would
-  // recommend keeping a copy of this original template around so that you can load it to your robot and check whether
-  // you have a software issue or whether there is a hardware/wiring issue.
-
+  
+    // Here are a few examples of some of the core functionalities of the robot. If things ever stop working, I would
+    // recommend keeping a copy of this original template around so that you can load it to your robot and check whether
+    // you have a software issue or whether there is a hardware/wiring issue.
+  
+    
+  
+  //  RobotPose robot = getRobotPose(MY_ROBOT_ID);
+  //  if (robot.valid == true)
+  //  {
+  //    Serial.println("The camera can see my robot");
+  //    printRobotPose(robot);
+  //  }
+  //
+  //  BallPosition ballPos[20];
+  //  int numBalls = getBallPositions(ballPos);
+  //  Serial.print("NUM BALLS: ");
+  //  Serial.println(numBalls);
+  //  printBallPositions(numBalls, ballPositions);
+  //
+  //// TODO: You will want to replace this serial output with something that
+  //  // looks like:
+  //  //    result of millis(),value in input,
+  //  // on each line. Then you can copy this from the Serial Monitor into a 
+  //  // text file, save it as a .csv file, then open it in Excel for plotting
+  //  // to find the Ziegler-Nichols period.
+  //  
+  //  Serial.print("Setpoint: ");Serial.print(setpoint); Serial.print(" ");
+  //  Serial.print("Measured : ");Serial.print(input); Serial.print(" ");
+  //  Serial.print("PWM Output: ");Serial.print(output); Serial.print(" ");
+  //  Serial.println("");
+  //        
   
 
-//  RobotPose robot = getRobotPose(MY_ROBOT_ID);
-//  if (robot.valid == true)
-//  {
-//    Serial.println("The camera can see my robot");
-//    printRobotPose(robot);
-//  }
-//
-//  BallPosition ballPos[20];
-//  int numBalls = getBallPositions(ballPos);
-//  Serial.print("NUM BALLS: ");
-//  Serial.println(numBalls);
-//  printBallPositions(numBalls, ballPositions);
-//
-//// TODO: You will want to replace this serial output with something that
-//  // looks like:
-//  //    result of millis(),value in input,
-//  // on each line. Then you can copy this from the Serial Monitor into a 
-//  // text file, save it as a .csv file, then open it in Excel for plotting
-//  // to find the Ziegler-Nichols period.
-//  
-//  Serial.print("Setpoint: ");Serial.print(setpoint); Serial.print(" ");
-//  Serial.print("Measured : ");Serial.print(input); Serial.print(" ");
-//  Serial.print("PWM Output: ");Serial.print(output); Serial.print(" ");
-//  Serial.println("");
-//        
 }

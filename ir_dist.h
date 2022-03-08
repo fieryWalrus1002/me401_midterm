@@ -30,7 +30,7 @@
 #define IR_OUT A9
 #define SERVO_PIN 30
 #define RADIANS 1 // if 1, angle measures will be returned in radian headings (+-)
-#define SERVOLIMIT 120 // max angle of the servo
+#define SERVOLIMIT 60 // max angle of the servo sweep
 #define SERVO_INCREMENT 10 // number of increments to divide the servo into for IR distance measurements
 #define SAMPLE_NUM 3 // how many IR measurements to average over
 
@@ -73,7 +73,7 @@ void calibrateIrSensor(){
 void moveIrSensor(int desiredAngle){
   // the servo library angle doesn't really match any real degrees so we map our desired angle to a calibrated set of values
   static int lastTheta = 0;
-  int theta = map(desiredAngle, 0, SERVOLIMIT, 20, 160);
+  int theta = map(desiredAngle, 0, SERVOLIMIT, 30, 125);
   servo.write(theta);
   delay(abs(theta - lastTheta)*5); // wait for servo to move before continuing, dependent on distance to travel
   lastTheta = theta; 

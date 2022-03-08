@@ -24,21 +24,25 @@
 #ifndef _DCMOTOR_H_
 #define _DCMOTOR_H_
 
-#define LEFTMOTOR_EN 3
-#define LEFTMOTOR_DIR 4
-#define RIGHTMOTOR_EN 5
-#define RIGHTMOTOR_DIR 34
+#define LEFTMOTOR_EN 5
+#define LEFTMOTOR_DIR 34
+#define RIGHTMOTOR_EN 3
+#define RIGHTMOTOR_DIR 4
+//#define LEFTMOTOR_EN 3
+//#define LEFTMOTOR_DIR 4
+//#define RIGHTMOTOR_EN 5
+//#define RIGHTMOTOR_DIR 34
 #define FORDIR 0
 #define REVDIR 1
-#define SLOW 50
-#define FAST 150
+#define SLOW 100
+#define FAST 200
 
 enum moveActions {
   ALLSTOP,
   FORWARD,
   BACKUP,
-  LEFTTURN,
-  RIGHTTURN
+  TURNLEFT,
+  TURNRIGHT
 };
 
 int right_pwm = 0;
@@ -51,7 +55,7 @@ void commandMotors(int leftDir, int leftPWM, int rightDir, int rightPWM){
   analogWrite(RIGHTMOTOR_EN, rightPWM);
 }
 
-void moveRobot(enum moveActions chosenAction, int delayTime){
+void moveRobot(enum moveActions chosenAction){
   //
   
   switch (chosenAction) {
@@ -67,20 +71,19 @@ void moveRobot(enum moveActions chosenAction, int delayTime){
       Serial.println("BACKUP");
       commandMotors(REVDIR, SLOW, REVDIR, SLOW);
       break;
-    case LEFTTURN:
-      Serial.println("LEFTTURN");
-      commandMotors(REVDIR, SLOW, FORDIR, FAST);
+    case TURNLEFT:
+      Serial.println("TURNLEFT");
+      commandMotors(REVDIR, SLOW, FORDIR, SLOW);
       break;
-    case RIGHTTURN:
-      Serial.println("RIGHTTURN");
-      commandMotors(FORDIR, FAST, REVDIR, SLOW);
+    case TURNRIGHT:
+      Serial.println("TURNRIGHT");
+      commandMotors(FORDIR, SLOW, REVDIR, FAST);
       break;
     default:
       Serial.println("default, no move");
       break;
   }  
 
-  delay(delayTime);
 }
 
 
@@ -90,19 +93,17 @@ void initDcMotors(){
   pinMode(RIGHTMOTOR_EN, OUTPUT);
   pinMode(RIGHTMOTOR_DIR, OUTPUT);
 
-  moveRobot(ALLSTOP, 0);
+  moveRobot(ALLSTOP);
   
 }
 
 void testMotors(){
-  moveRobot(FORWARD, 250);
-  moveRobot(LEFTTURN,100);
-  moveRobot(FORWARD, 250);
-  moveRobot(RIGHTTURN, 100);
-  moveRobot(BACKUP, 250);
-  moveRobot(FORWARD, 250);
-  moveRobot(RIGHTTURN, 100);
+  moveRobot(FORWARD);
   delay(2000);
+  moveRobot(BACKUP);
+  delay(2000);
+  moveRobot(ALLSTOP);
+  delay(10000);
 }
 
 
