@@ -6,6 +6,7 @@
 #include "navigation.h"
 
 #define TESTSTATE AVOID
+// comment to test changes
 
 enum robotStates {
   ATTACK, // search for balls in neutral and opposing base
