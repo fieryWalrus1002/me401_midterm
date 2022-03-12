@@ -7,11 +7,7 @@
 #include "navigation.h"
 
 #define TESTSTATE AVOID
-<<<<<<< HEAD
 #define EXTINT 7 // interrupt 1 is on digital pin 2
-=======
-// comment to test changes
->>>>>>> 59944088d268e7bf9ce61e4b532413551bc6bfc4
 
 enum robotStates {
   ATTACK, // search for balls in neutral and opposing base
