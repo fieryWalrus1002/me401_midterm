@@ -1,12 +1,17 @@
 #include "main.h"
 #include "ME401_Radio.h"
 #include "ME401_PID.h"
-#include "dcmotor.h"
+//#include "dcmotor.h"
+#include "contServo.h"
 #include "ir_dist.h"
 #include "navigation.h"
 
 #define TESTSTATE AVOID
+<<<<<<< HEAD
+#define EXTINT 7 // interrupt 1 is on digital pin 2
+=======
 // comment to test changes
+>>>>>>> 59944088d268e7bf9ce61e4b532413551bc6bfc4
 
 enum robotStates {
   ATTACK, // search for balls in neutral and opposing base
@@ -23,6 +28,8 @@ enum testStates {
   AVOID // moves and avoids obstacles
 };
 enum testStates testState = TESTSTATE;
+
+volatile int robotOn = HIGH; // starts off, have to bring a pin low to start it
 
 void attack(){
   Serial.println("ATTACK");
@@ -115,17 +122,32 @@ void changeState(){
 //  Serial.println("changeState");
 }
 
+void onStateHandler(){
+  robotOn = !robotOn;
+//  attachInterrupt(digitalPinToInterrupt(EXTINT), onStateHandler, HIGH);
+  if (robotOn == LOW){
+    motorStop();
+  }
+  
+  Serial.println(robotOn);
+}
+
 void setup() {
   Serial.begin(115200);
   Serial.println("serial begin");
   
-  initDcMotors(); // DC motors for locomotion
+  initMotors(); // motors for locomotion
   Serial.println("dc motors online");
   initIrSensor(); // Sharp IR distance sensor initialize
   Serial.println("ir sensor online");
-  
-//  ME401_Radio_initialize(); // Initialize the RFM69HCW radio
 
+  // create external interrupt to keep robot from driving off the table while working on it
+//  pinMode(EXTINT, INPUT);
+//  attachInterrupt(digitalPinToInterrupt(EXTINT), onStateHandler, RISING);
+  
+  
+  ME401_Radio_initialize(); // Initialize the RFM69HCW radio
+  Serial.println("radio online");
   // Initialize the PID and IR interrupts
   // TODO: Change the kp, ki, kd in the ME491_PID_IR.h file to match your new tunings
   //       that you did after installing the sensor on your robot
@@ -133,15 +155,11 @@ void setup() {
 }
 
 void loop() {
-//  while (robotOn == false){
-//    checkOnState();// do nothing but check buttons
-//    Serial.print(".");
-//  }
+//  while(1){
+    checkStatus(); // check the status of the game environment
+    changeState(); // check to see if a state change is called for
+    handleState(); // execute current state function
 
-//  checkOnState();
-    //  checkStatus(); // check the status of the game environment
-  changeState(); // check to see if a state change is called for
-  handleState(); // execute current state function
   
     // Here are a few examples of some of the core functionalities of the robot. If things ever stop working, I would
     // recommend keeping a copy of this original template around so that you can load it to your robot and check whether
