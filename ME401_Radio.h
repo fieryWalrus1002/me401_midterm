@@ -31,7 +31,7 @@
 
 #define NUM_ROBOTS 40
 #define NUM_BALLS 20
-
+#define RADIO_LED 6
 
 
 
@@ -69,6 +69,13 @@ void setupRadio(int teamID)
   radio.initialize(FREQUENCY, MYNODEID, NETWORKID);
   radio.setHighPower(); // Always use this for RFM69HCW  
 }
+
+void blinkLED()
+{
+  int ledState = digitalRead(RADIO_LED);
+  digitalWrite(RADIO_LED, !ledState);
+}
+
 
 int getNumRobots()
 {
@@ -139,12 +146,21 @@ void updateRobotPoseAndBallPositions (void)
   bool msg_end_found = false;
   int idx = 0;
   int error = 0;
-//  Serial.println("in update robot poses");
+  int counter = 0;
+  Serial.println("in update robot poses");
   while (error == 0)
   {
+//    counter += 1;
+//    if (counter % 100000){
+//      blinkLED();
+//    }
+//    if (counter > 100000){
+//      counter = 0;
+//      break;
+//    }
     if (radio.receiveDone()) // Got one!
     {
-//      Serial.println("got one");
+      Serial.println("got one");
 //      printRFMMessage(radio.DATALEN, (uint8_t*)radio.DATA);
 
       
@@ -156,7 +172,7 @@ void updateRobotPoseAndBallPositions (void)
         char secondByte = (char)radio.DATA[1];
         if (firstByte == '$' && secondByte == '$') 
         {
-          //Serial.println("FOUND START BYTES");
+          Serial.println("FOUND START BYTES");
           msg_start_found = true;
           idx = 0;
         }       
@@ -303,12 +319,15 @@ void printBallPositions(int num, BallPosition (&pos)[NUM_BALLS])
   }
 }
 
+
 void ME401_Radio_initialize(void)
 {
   radio.initialize(FREQUENCY, MYNODEID, NETWORKID);
   radio.setHighPower(); // Always use this for RFM69HCW
+//  pinMode(RADIO_LED, OUTPUT);
+//  digitalWrite(RADIO_LED, LOW);
 
   // Turn on encryption if desired:
-  if (ENCRYPT)
-    radio.encrypt(ENCRYPTKEY);
+//  if (ENCRYPT)
+//    radio.encrypt(ENCRYPTKEY);
 }

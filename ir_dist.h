@@ -84,7 +84,6 @@ int getRawDistance(int theta){
   int sumVal = 0;
   for (int i = 0; i < SAMPLE_NUM; i++){
     sumVal += analogRead(IR_OUT); 
-    delay(10);
   }
   int irVal = sumVal / SAMPLE_NUM;
   return irVal;
