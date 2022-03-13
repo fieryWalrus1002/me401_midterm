@@ -13,16 +13,38 @@
 
 #define DT 50 // length of one step of movement time
 
-struct HOMEBASE {
-  float x = 1000;
-  float y = 1000;
-  float radius = HOMERADIUS;
-} home_base;
+typedef struct navPoint {
+  float x; 
+  float y;
+};
+
+
+navPoint testCourse[] = {
+                          {250.0, 250.0}, 
+                          {1750.0, 250.0}, 
+                          {1750.0, 1750.0}, 
+                          {250.0, 1750.0},
+};   
 
 void init_nav(int){
   home_base.x = 0.0;
   home_base.y = 0.0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 void robotBlocked(){
     moveRobot(ALLSTOP);
