@@ -18,43 +18,48 @@
 #ifndef _CONT_SERVO_H_
 #define _CONT_SERVO_H_
 #include <Servo.h>
-#include "motorPID.h"
+//#include "motorPID.h"
 
-#define leftServoPin 31
-#define rightServoPin 32
-
+#define leftServoPin 32
+#define rightServoPin 31
+#define maxInput 1.0
+#define minInput -1.0
+#define LOFFSET 2 // offset of servo value to get no motion. 92 in this case
+#define ROFFSET 2.5 //
 Servo leftServo;
 Servo rightServo;
 
 void initMotors(){
   leftServo.attach(leftServoPin);
   rightServo.attach(rightServoPin); // higher makes it go backward
-  
+   
 }
 
-
-
-
-void commandMotors(int leftDir, int leftPWM, int rightDir, int rightPWM){
-  int leftServoPWM = 0;
-  int rightServoPWM = 0;
+void commandMotors(double leftInput, double rightInput){
+  /* take in a value of -1 to 1 for each motor, and turn that
+  *  into the duty cycle to each motor. 
+  */
+  int leftServoDC;
+  int rightServoDC;
   
-  if (leftDir > 0){
-    leftServoPWM = map(leftPWM, 0, 255, STOPVAL, 0);
-  } else {
-    leftServoPWM = map(leftPWM, 0, 255, STOPVAL, 180);
+  
+  // map inputs to servo write values for pwm generation
+  if (leftInput >= 0.0){
+    leftServoDC = map(leftInput, 0.0, 1.0, 90 + LOFFSET, 180);
+  } else if (leftInput < 0.0){
+    leftServoDC = map(leftInput, -1.0, 0.0, 0, 90 - LOFFSET);
   }
 
-    if (rightDir > 0){
-    rightServoPWM = map(rightPWM, 0, 255, STOPVAL, 180);
-  } else {
-    rightServoPWM = map(rightPWM, 0, 255, STOPVAL, 0);
+  if (rightInput >= 0.0){
+    rightServoDC = map(rightInput, 0.0, 1.0, 90 + ROFFSET, 0);
+  } else if (rightInput < 0.0){
+    rightServoDC = map(rightInput, -1.0, 0.0, 180, 90 + ROFFSET);
   }
-  leftServo.write(leftServoPWM);
-  rightServo.write(rightServoPWM);
+  
+  // write output duty cycle to servos
+  leftServo.write(leftServoDC);
+  rightServo.write(rightServoDC);
 }
-
-
 
 
 

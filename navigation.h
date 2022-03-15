@@ -18,6 +18,7 @@ typedef struct navPoint {
   float y;
 };
 
+navPoint home_base;
 
 navPoint testCourse[] = {
                           {250.0, 250.0}, 
@@ -26,33 +27,21 @@ navPoint testCourse[] = {
                           {250.0, 1750.0},
 };   
 
-void init_nav(int){
-  home_base.x = 0.0;
-  home_base.y = 0.0;
+double calcDistError(navPoint navpoint, RobotPose pose){
+  double distErr = sqrt(pow(abs(pose.x - navpoint.x), 2) + pow(abs(pose.y - navpoint.y), 2));
+  return distErr;
 }
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 void robotBlocked(){
-    moveRobot(ALLSTOP);
-    delay(100);
-    moveRobot(BACKUP);
-    delay(200);
-    moveRobot(TURNLEFT);
-    delay(200);
+//    moveRobot(ALLSTOP);
+//    delay(100);
+//    moveRobot(BACKUP);
+//    delay(200);
+//    moveRobot(TURNLEFT);
+//    delay(200);
 }
 
 int chartCourse(){
@@ -88,54 +77,54 @@ int chartCourse(){
 
 
 void avoidanceTest(){
-  int course = chartCourse();
-
-  switch (course) {
-    case 0:
-      // no obstruction, keep on moving on
-      moveRobot(FORWARD);
-      break;
-    case 1:
-      // turn left
-       moveRobot(TURNLEFT);
-       delay(DT);
-      break;
-    case 2:
-      // back up and turn left
-      moveRobot(BACKUP);
-      delay(DT * 2);
-      moveRobot(TURNLEFT);
-      delay(DT);
-      break;    
-    case 3:
-      // back up a lot and turn left
-      moveRobot(BACKUP);
-      delay(DT * 5);
-      moveRobot(TURNLEFT);
-      delay(DT);
-      break;
-     case 4:
-      // turn right
-      moveRobot(TURNRIGHT);
-      delay(DT);
-      break;
-    case 5:
-      // back up and turn right
-      moveRobot(BACKUP);
-      delay(DT * 2);
-      moveRobot(TURNRIGHT);
-      delay(DT);
-      break;
-    case 6:
-        // back up a lot and turn right
-      moveRobot(BACKUP);
-      delay(DT * 5);
-      moveRobot(TURNRIGHT);
-      delay(DT);
-      break;
-    default:
-      break;
-  }
+//  int course = chartCourse();
+//
+//  switch (course) {
+//    case 0:
+//      // no obstruction, keep on moving on
+//      moveRobot(FORWARD);
+//      break;
+//    case 1:
+//      // turn left
+//       moveRobot(TURNLEFT);
+//       delay(DT);
+//      break;
+//    case 2:
+//      // back up and turn left
+//      moveRobot(BACKUP);
+//      delay(DT * 2);
+//      moveRobot(TURNLEFT);
+//      delay(DT);
+//      break;    
+//    case 3:
+//      // back up a lot and turn left
+//      moveRobot(BACKUP);
+//      delay(DT * 5);
+//      moveRobot(TURNLEFT);
+//      delay(DT);
+//      break;
+//     case 4:
+//      // turn right
+//      moveRobot(TURNRIGHT);
+//      delay(DT);
+//      break;
+//    case 5:
+//      // back up and turn right
+//      moveRobot(BACKUP);
+//      delay(DT * 2);
+//      moveRobot(TURNRIGHT);
+//      delay(DT);
+//      break;
+//    case 6:
+//        // back up a lot and turn right
+//      moveRobot(BACKUP);
+//      delay(DT * 5);
+//      moveRobot(TURNRIGHT);
+//      delay(DT);
+//      break;
+//    default:
+//      break;
+//  }
 }
 
 #endif

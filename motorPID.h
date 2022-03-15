@@ -17,7 +17,7 @@
 */
 
 #ifndef _MOTORPID_H_
-#def _MOTORPID_H_
+#define _MOTORPID_H_
 
 typedef struct {
   // PID controller params
@@ -35,13 +35,12 @@ typedef struct {
   double minLimit;
 } PIDVars;
 
-
-double pidCalc(PIDVars *var, double currentError){
-  var->_integral += currentError*(vars->_dt);
+double pidCalc(PIDVars *vars, double currentError){
+  vars->_integral += currentError*(vars->_dt);
   
-  double output = (vars->Kp)*currentError + (vars->Ki)*(vars->_integral) + (vars->Kd)*((currentError - (vars->_prevError)) / (vars->_dt);
+  double output = (vars->Kp)*currentError + (vars->Ki)*(vars->_integral) + (vars->Kd)*((currentError - (vars->_prevError)) / (vars->_dt));
   
-  vars->_prev_err = current _err;
+  vars->_prevError = currentError;
   
   if (output >(vars->maxLimit))
     output = vars->maxLimit;

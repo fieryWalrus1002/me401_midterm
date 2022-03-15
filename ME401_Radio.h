@@ -147,7 +147,7 @@ void updateRobotPoseAndBallPositions (void)
   int idx = 0;
   int error = 0;
   int counter = 0;
-  Serial.println("in update robot poses");
+//  Serial.println("in update robot poses");
   while (error == 0)
   {
 //    counter += 1;
@@ -160,7 +160,7 @@ void updateRobotPoseAndBallPositions (void)
 //    }
     if (radio.receiveDone()) // Got one!
     {
-      Serial.println("got one");
+//      Serial.println("got one");
 //      printRFMMessage(radio.DATALEN, (uint8_t*)radio.DATA);
 
       
@@ -172,7 +172,7 @@ void updateRobotPoseAndBallPositions (void)
         char secondByte = (char)radio.DATA[1];
         if (firstByte == '$' && secondByte == '$') 
         {
-          Serial.println("FOUND START BYTES");
+//          Serial.println("FOUND START BYTES");
           msg_start_found = true;
           idx = 0;
         }       

@@ -9,7 +9,15 @@
 #define TESTSTATE AVOID
 #define EXTINT 7 // interrupt 1 is on digital pin 2
 
-                       
+
+/////////////////  PID TEST //////////////
+
+// Global variables for the timer interrupt handling
+//int pidSampleTime = 10;
+//long counterPID=1;
+
+// Global variables for the PID controller
+double kp1=0.3,ki1=0.0,kd1=0.00; // stupid, simple, poor proportional controller
 
 
 enum robotStates {
@@ -18,7 +26,9 @@ enum robotStates {
   DEFEND, // interpose robot between opposing robots and home base
   TEST // for testing functionality
 };
-enum robotStates robotState = TEST;
+enum robotStates robotState = CAPTURE;
+RobotPose myRobotPose;
+navPoint currentTarget;
 
 enum testStates {
   DISTANCE, // checks getDistance() values and prints to serial
@@ -28,7 +38,8 @@ enum testStates {
 };
 enum testStates testState = TESTSTATE;
 
-volatile int robotOn = HIGH; // starts off, have to bring a pin low to start it
+
+PID motorPid(&input, &output, &setpoint,kp1,ki1,kd1, DIRECT);           
 
 void attack(){
   Serial.println("ATTACK");
@@ -38,8 +49,8 @@ void defend(){
   Serial.println("DEFEND"); 
 }
 
-void capture(){
-  Serial.println("CAPTURE");
+void capture(){  
+  currentTarget = home_base;
 }
 
 void test(){
@@ -56,7 +67,7 @@ void test(){
       break;
     case MOTORS:
       // test motor functionality
-      testMotors();
+//      testMotors();
       break;
     case AVOID:
       avoidanceTest(); // tests how the robot avoids collisions while moving forward
@@ -88,6 +99,7 @@ void printSelfPose(){
 
 void checkStatus(){
   updateRobotPoseAndBallPositions();
+  myRobotPose = getRobotPose(MY_ROBOT_ID);
 }
 
 void handleState(){
@@ -120,15 +132,6 @@ void changeState(){
 //  Serial.println("changeState");
 }
 
-void onStateHandler(){
-  robotOn = !robotOn;
-//  attachInterrupt(digitalPinToInterrupt(EXTINT), onStateHandler, HIGH);
-  if (robotOn == LOW){
-    motorStop();
-  }
-  
-  Serial.println(robotOn);
-}
 
 void setup() {
   Serial.begin(115200);
@@ -138,7 +141,13 @@ void setup() {
   Serial.println("dc motors online");
   initIrSensor(); // Sharp IR distance sensor initialize
   Serial.println("ir sensor online");
-
+  home_base.x = 1500.0;
+  home_base.y = 1500.0;
+    //Setup the pid 
+             
+  motorPid.SetMode(AUTOMATIC);
+  motorPid.SetSampleTime(10);
+  motorPid.SetOutputLimits(-1.0,1.0);
   // create external interrupt to keep robot from driving off the table while working on it
 //  pinMode(EXTINT, INPUT);
 //  attachInterrupt(digitalPinToInterrupt(EXTINT), onStateHandler, RISING);
@@ -153,34 +162,34 @@ void setup() {
 }
 
 void loop() {
-
   checkStatus(); // check the status of the game environment
-  changeState(); // check to see if a state change is called for
+  //  changeState(); // check to see if a state change is called for
   handleState(); // execute current state function
-  
-  // get pose data from radio
-  RobotPose myRobot = getRobotPose(MY_ROBOT_ID);
 
-  
-  
-  //  BallPosition ballPos[20];
-  //  int numBalls = getBallPositions(ballPos);
-  //  Serial.print("NUM BALLS: ");
-  //  Serial.println(numBalls);
-  //  printBallPositions(numBalls, ballPositions);
-  //
-  //// TODO: You will want to replace this serial output with something that
-  //  // looks like:
-  //  //    result of millis(),value in input,
-  //  // on each line. Then you can copy this from the Serial Monitor into a 
-  //  // text file, save it as a .csv file, then open it in Excel for plotting
-  //  // to find the Ziegler-Nichols period.
-  //  
-  //  Serial.print("Setpoint: ");Serial.print(setpoint); Serial.print(" ");
-  //  Serial.print("Measured : ");Serial.print(input); Serial.print(" ");
-  //  Serial.print("PWM Output: ");Serial.print(output); Serial.print(" ");
-  //  Serial.println("");
-  //        
-  
+  // update PID controller
+  // calculate movement error
+  double distError = calcDistError(currentTarget, myRobotPose);  //(navPoint navpoint, robotPose pose)
+  input = myRobotPose.x;
+  setpoint = currentTarget.x;
+//  motorPid(&input, &output, &setpoint,kp,ki,kd, DIRECT);                       
+//  PID myPID(&input, &output, &setpoint,kp,ki,kd, DIRECT);
+//  Serial.print("distError= ");
+//  Serial.println(distError);  
+
+  motorPid.Compute();
+  Serial.print(millis());
+  Serial.print(", ");
+  Serial.print(setpoint);
+  Serial.print(", ");
+  Serial.print(input);
+  Serial.print(", ");
+  Serial.println(output);
+  commandMotors(-1* output, -1* output);
+
+
+
+
+
+
 
 }
