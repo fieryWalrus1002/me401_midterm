@@ -27,6 +27,44 @@ navPoint testCourse[] = {
                           {250.0, 1750.0},
 };   
 
+navPoint setHomeBase(RobotPose);
+
+
+void initNavSystem(){
+  // replace this with the setHomeBase later
+  home_base.x = 1500.0;
+  home_base.y = 1500.0;
+
+//  home_base = setHomeBase();
+}
+
+
+navPoint setHomeBase(RobotPose myStartPose){
+  // TODO: this is not finished you need to actually measure this shit
+  // automatically set your home base coordinates according to what quadrant your robot starts up in
+  navPoint homeBase;
+  if (myStartPose.x < 1100){
+    if (myStartPose.y > 1100){
+      homeBase.x = 140;
+      homeBase.y = 2050;
+    } else {
+      homeBase.x = 140;
+      homeBase.y = 2050;
+    }
+
+  if (myStartPose.x > 1100){
+    if (myStartPose.y > 1100){
+      homeBase.x = 140;
+      homeBase.y = 2050;
+    } else {
+      homeBase.x = 140;
+      homeBase.y = 2050;
+    }
+  }
+  }
+  return homeBase;
+}
+
 double calcDistError(navPoint navpoint, RobotPose pose){
   double distErr = sqrt(pow(abs(pose.x - navpoint.x), 2) + pow(abs(pose.y - navpoint.y), 2));
   return distErr;

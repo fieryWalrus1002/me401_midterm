@@ -29,10 +29,63 @@
 Servo leftServo;
 Servo rightServo;
 
+// function prototype
+void commandMotors(double leftInput, double rightInput);
+
+// Global variables for the motor PID controller
+double kp1=0.3,ki1=0.0,kd1=0.00; // stupid, simple, poor proportional controller
+double distErr=0, velocity=0, targetDist=0;
+PID motorPid(&distErr, &velocity, &targetDist,kp1,ki1,kd1, DIRECT);           
+
+// Global variables for the steering PID controller
+double kp2=0.3,ki2=0.0,kd2=0.00; // stupid, simple, poor proportional controller
+double rotErr=0, steer=0, heading=0;
+PID steerPid(&rotErr, &steer, &heading,kp2,ki2,kd2, DIRECT);           
+
 void initMotors(){
   leftServo.attach(leftServoPin);
   rightServo.attach(rightServoPin); // higher makes it go backward
-   
+
+  // speed PID
+  motorPid.SetMode(AUTOMATIC);
+  motorPid.SetSampleTime(10);
+  motorPid.SetOutputLimits(-1.0,1.0);
+
+  // rotation PID
+  steerPid.SetMode(AUTOMATIC);
+  steerPid.SetSampleTime(10);
+  steerPid.SetOutputLimits(-1.0,1.0);
+
+}
+
+
+void updateMotors(navPoint navpoint, RobotPose pose){
+  // calculate movement error
+  distError = calcDistError(navpoint, pose);  //(navPoint navpoint, robotPose pose)
+  targetDist = currentTarget.x;
+  motorPid.Compute();
+
+  // calculate roation error
+  rotError = calcRotError(navpoint, pose);
+  steerPid.Compute();
+
+  // calculate steering error
+  double rotErr=0, steer=0, heading=0;
+
+  Serial.print(millis());
+  Serial.print(", ");
+  Serial.print(distErr);
+  Serial.print(", ");
+  Serial.print(targetDist);
+  Serial.print(", ");
+  Serial.println(velocity);
+  Serial.print(", ");
+  Serial.print(heading);
+  Serial.print(", ");
+  Serial.print(rotErr);
+  Serial.print(", ");
+  Serial.println(steer);
+  commandMotors(output + steer, output - steer);
 }
 
 void commandMotors(double leftInput, double rightInput){
@@ -41,8 +94,7 @@ void commandMotors(double leftInput, double rightInput){
   */
   int leftServoDC;
   int rightServoDC;
-  
-  
+
   // map inputs to servo write values for pwm generation
   if (leftInput >= 0.0){
     leftServoDC = map(leftInput, 0.0, 1.0, 90 + LOFFSET, 180);
@@ -60,7 +112,5 @@ void commandMotors(double leftInput, double rightInput){
   leftServo.write(leftServoDC);
   rightServo.write(rightServoDC);
 }
-
-
 
 #endif

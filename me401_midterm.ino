@@ -16,9 +16,6 @@
 //int pidSampleTime = 10;
 //long counterPID=1;
 
-// Global variables for the PID controller
-double kp1=0.3,ki1=0.0,kd1=0.00; // stupid, simple, poor proportional controller
-
 
 enum robotStates {
   ATTACK, // search for balls in neutral and opposing base
@@ -39,7 +36,7 @@ enum testStates {
 enum testStates testState = TESTSTATE;
 
 
-PID motorPid(&input, &output, &setpoint,kp1,ki1,kd1, DIRECT);           
+
 
 void attack(){
   Serial.println("ATTACK");
@@ -141,13 +138,10 @@ void setup() {
   Serial.println("dc motors online");
   initIrSensor(); // Sharp IR distance sensor initialize
   Serial.println("ir sensor online");
-  home_base.x = 1500.0;
-  home_base.y = 1500.0;
+
     //Setup the pid 
              
-  motorPid.SetMode(AUTOMATIC);
-  motorPid.SetSampleTime(10);
-  motorPid.SetOutputLimits(-1.0,1.0);
+
   // create external interrupt to keep robot from driving off the table while working on it
 //  pinMode(EXTINT, INPUT);
 //  attachInterrupt(digitalPinToInterrupt(EXTINT), onStateHandler, RISING);
@@ -165,27 +159,7 @@ void loop() {
   checkStatus(); // check the status of the game environment
   //  changeState(); // check to see if a state change is called for
   handleState(); // execute current state function
-
-  // update PID controller
-  // calculate movement error
-  double distError = calcDistError(currentTarget, myRobotPose);  //(navPoint navpoint, robotPose pose)
-  input = myRobotPose.x;
-  setpoint = currentTarget.x;
-//  motorPid(&input, &output, &setpoint,kp,ki,kd, DIRECT);                       
-//  PID myPID(&input, &output, &setpoint,kp,ki,kd, DIRECT);
-//  Serial.print("distError= ");
-//  Serial.println(distError);  
-
-  motorPid.Compute();
-  Serial.print(millis());
-  Serial.print(", ");
-  Serial.print(setpoint);
-  Serial.print(", ");
-  Serial.print(input);
-  Serial.print(", ");
-  Serial.println(output);
-  commandMotors(-1* output, -1* output);
-
+  updateMotors();
 
 
 
