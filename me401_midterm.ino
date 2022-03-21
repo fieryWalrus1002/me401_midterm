@@ -2,13 +2,15 @@
 #include "ME401_Radio.h"
 #include "ME401_PID.h"
 //#include "dcmotor.h"
-#include "contServo.h"
+
 #include "ir_dist.h"
 #include "navigation.h"
+#include "contServo.h"
 
 #define TESTSTATE AVOID
 #define EXTINT 7 // interrupt 1 is on digital pin 2
-
+bool RADIO = true;
+long dT = 0.0;
 
 /////////////////  PID TEST //////////////
 
@@ -25,7 +27,7 @@ enum robotStates {
 };
 enum robotStates robotState = CAPTURE;
 RobotPose myRobotPose;
-navPoint currentTarget;
+navPoint currentNavPoint;
 
 enum testStates {
   DISTANCE, // checks getDistance() values and prints to serial
@@ -36,6 +38,7 @@ enum testStates {
 enum testStates testState = TESTSTATE;
 
 
+//navPoint test_point;
 
 
 void attack(){
@@ -47,7 +50,7 @@ void defend(){
 }
 
 void capture(){  
-  currentTarget = home_base;
+  currentNavPoint = home_base;
 }
 
 void test(){
@@ -67,7 +70,7 @@ void test(){
 //      testMotors();
       break;
     case AVOID:
-      avoidanceTest(); // tests how the robot avoids collisions while moving forward
+      //avoidanceTest(); // tests? how the robot avoids collisions while moving forward
       break;
     default:
       Serial.println("no test state");
@@ -136,34 +139,39 @@ void setup() {
   
   initMotors(); // motors for locomotion
   Serial.println("dc motors online");
+  
   initIrSensor(); // Sharp IR distance sensor initialize
   Serial.println("ir sensor online");
-
-    //Setup the pid 
-             
-
-  // create external interrupt to keep robot from driving off the table while working on it
-//  pinMode(EXTINT, INPUT);
-//  attachInterrupt(digitalPinToInterrupt(EXTINT), onStateHandler, RISING);
+  initNavSystem();
   
+  if (RADIO == true){
+    ME401_Radio_initialize(); // Initialize the RFM69HCW radio  
+    Serial.println("radio online");
+  }
   
-  ME401_Radio_initialize(); // Initialize the RFM69HCW radio
-  Serial.println("radio online");
   // Initialize the PID and IR interrupts
   // TODO: Change the kp, ki, kd in the ME491_PID_IR.h file to match your new tunings
   //       that you did after installing the sensor on your robot
   //  setupPIDandIR();
+    currentNavPoint = {100,0};
+    myRobotPose.x = 0;
+    myRobotPose.y = 0;
+    myRobotPose.theta = 0;
 }
 
 void loop() {
-  checkStatus(); // check the status of the game environment
-  //  changeState(); // check to see if a state change is called for
-  handleState(); // execute current state function
-  updateMotors();
-
-
-
-
-
-
+  dT = millis() - dT;
+  
+  if (RADIO == true){
+    checkStatus(); // check the status of the game environment
+    changeState(); // check to see if a state change is called for
+    handleState(); // execute current state function
+    
+    // update the relative position of the nav point
+    navPoint pn_r = getPnr(currentNavPoint, myRobotPose);
+    
+    // use data on relative distance to navPoint to update motor PIDs
+    updateMotors(pn_r);
+    
+  }
 }
