@@ -35,7 +35,6 @@ const double angleThresh = 0.01; // arbitrary low "close enough" rotation thresh
 void commandMotors(double leftInput, double rightInput);
 
 //PIDVars{Kp, Ki, Kd, _integral, _prevError, _dt, maxLimit, minLimit};
-
 /////// heading PID controller
 double rotError=0.0, angleAdj=0.0, headingSetpoint=0.0;
 //PIDVars hVars = {0.04, 0.000049, 26.948, 0.0, 0.0, 0.0, 0.5, -0.5}; // calculated with Z-N method by Jon, but we modified max
@@ -59,17 +58,18 @@ void updateMotors(navPoint navpoint, unsigned long deltaT, bool debug){
   hVars._dT = deltaT;
 
   // calculate distance error
-  distError = (distSetpoint - getDistanceRelRobot(navpoint)) / 1000;
+  // normalize error to arbitrary maximum distance. It might be over 1, but not by too much. 
+  // say, 800 away, so it would be 800/1000 = .8
+  distError = (distSetpoint - getDistanceRelRobot(navpoint)) / 1200;
   velocity = pidCalc(&vVars, distError, false); 
    
-  // if we are close enough, stop velocity
-//  if (distError <= distThresh){ 
-//    Serial.println("angle close enough");
-//    velocity = 0;
-//  }
+  if (distError <= distThresh){ 
+    velocity = 0;
+  }
 
   // calculate rotation error (difference between desired heading and measured
-  rotError = (headingSetpoint - getHeadingRelRobot(navpoint));
+  // normalized to pi, so 0 is dead on and 1 is almost directly away
+  rotError = (headingSetpoint - getHeadingRelRobot(navpoint)) / M_PI;
   angleAdj = pidCalc(&hVars, rotError, true);
   
 //  // account for "close enough" with angleThresh const
