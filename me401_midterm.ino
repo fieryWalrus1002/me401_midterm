@@ -1,23 +1,24 @@
 #include "main.h"
 #include "ME401_Radio.h"
 #include "ME401_PID.h"
+#include "motorPID.h"
+#include "serial_debug.h"
 //#include "dcmotor.h"
-
 #include "ir_dist.h"
 #include "navigation.h"
 #include "contServo.h"
 
 #define TESTSTATE AVOID
 #define EXTINT 7 // interrupt 1 is on digital pin 2
-bool RADIO = true;
-long dT = 0.0;
+
 
 /////////////////  PID TEST //////////////
 
 // Global variables for the timer interrupt handling
 //int pidSampleTime = 10;
 //long counterPID=1;
-
+unsigned long lastdT = 0;
+unsigned long dT = 0;
 
 enum robotStates {
   ATTACK, // search for balls in neutral and opposing base
@@ -25,9 +26,9 @@ enum robotStates {
   DEFEND, // interpose robot between opposing robots and home base
   TEST // for testing functionality
 };
-enum robotStates robotState = CAPTURE;
+enum robotStates robotState = ATTACK;
 RobotPose myRobotPose;
-navPoint currentNavPoint;
+
 
 enum testStates {
   DISTANCE, // checks getDistance() values and prints to serial
@@ -37,20 +38,16 @@ enum testStates {
 };
 enum testStates testState = TESTSTATE;
 
-
-//navPoint test_point;
-
-
 void attack(){
-  Serial.println("ATTACK");
+//  Serial.println("ATTACK");
 }
 
 void defend(){
-  Serial.println("DEFEND"); 
+//  Serial.println("DEFEND"); 
 }
 
 void capture(){  
-  currentNavPoint = home_base;
+//  currentNavPoint = home_base;
 }
 
 void test(){
@@ -85,7 +82,7 @@ void printSelfPose(){
   RobotPose myPose = getRobotPose(MY_ROBOT_ID);
   if (myPose.valid == true)
   {
-    Serial.print(millis());
+    Serial.print(millis() - lastTime);
     Serial.print(", ");
     Serial.print(MY_ROBOT_ID);
     Serial.print(", ");
@@ -94,6 +91,8 @@ void printSelfPose(){
     Serial.print(myPose.y);
     Serial.print(", ");
     Serial.println(myPose.theta);
+
+    
   }
 }
 
@@ -132,6 +131,22 @@ void changeState(){
 //  Serial.println("changeState");
 }
 
+void pidSerialOutput(navPoint pn_r){
+  /*  Serial output the pid values for Ziegler-Nichols tuning of the
+   *  pid controller. 
+   */
+  
+  Serial.print(millis());
+  Serial.print(", ");
+  Serial.print("(");
+  Serial.print(pn_r.x);
+  Serial.print(" ");
+  Serial.print(pn_r.y);
+  Serial.print("), ");
+  Serial.print(rotError);
+  Serial.print(", ");
+  Serial.println(angleAdj);
+}
 
 void setup() {
   Serial.begin(115200);
@@ -153,25 +168,37 @@ void setup() {
   // TODO: Change the kp, ki, kd in the ME491_PID_IR.h file to match your new tunings
   //       that you did after installing the sensor on your robot
   //  setupPIDandIR();
-    currentNavPoint = {100,0};
-    myRobotPose.x = 0;
-    myRobotPose.y = 0;
-    myRobotPose.theta = 0;
 }
 
 void loop() {
-  dT = millis() - dT;
-  
-  if (RADIO == true){
-    checkStatus(); // check the status of the game environment
-    changeState(); // check to see if a state change is called for
-    handleState(); // execute current state function
-    
-    // update the relative position of the nav point
-    navPoint pn_r = getPnr(currentNavPoint, myRobotPose);
-    
-    // use data on relative distance to navPoint to update motor PIDs
-    updateMotors(pn_r);
-    
+  // check the BTSerial for instructions
+  while (BTSerial.available())
+  {
+      process_inc_byte(BTSerial.read());
   }
+    
+
+
+  // set the time in seconds
+  dT = (millis() - lastTime) / 1000;
+ 
+
+  // update the environment and change states as required
+  checkStatus(); // check the status of the game environment
+//  changeState(); // check to see if a state change is called for
+//  handleState(); // execute current state function
+
+  // update the relative position of the nav point
+  navPoint pn_r = getPnr(currentNavPoint, myRobotPose);
+  
+  // use navpoint and robot pose to calculate PID changes needed and modify motor output
+  updateMotors(pn_r, dT, debugPID);
+
+  // debug PID output
+  if (debugOutput == true){
+    pidSerialOutput(pn_r);
+  }
+
+
+ lastdT = dT;
 }

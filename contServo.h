@@ -13,96 +13,129 @@
  *  Power supplied to J1 from J14
  *  Reference Manual located at:
  *  https://digilent.com/reference/add-ons/motor-shield/reference-manual
-
-*/
+ */
+ 
 #ifndef _CONT_SERVO_H_
 #define _CONT_SERVO_H_
 #include <Servo.h>
-//#include "motorPID.h"
-
+#include "main.h"
 #define leftServoPin 32
 #define rightServoPin 31
 #define maxInput 1.0
 #define minInput -1.0
 Servo leftServo;
 Servo rightServo;
-
+int leftServoDC;
+int rightServoDC;
+unsigned long lastTime;
+int sampleTime = 1000; // length of time between calls to update PID, in ms
+const double distThresh = 5; // number of mm that we call "close enough"
+const double angleThresh = 0.01; // arbitrary low "close enough" rotation threshold. helps control jitter at stop, due to changing coordinates on radio.
 // function prototype
 void commandMotors(double leftInput, double rightInput);
 
-// Global variables for the motor PID controller
-double kp1=0.3,ki1=0.0,kd1=0.00; // stupid, simple, poor proportional controller
-double distError=0, velocity=0, distSetpoint=0;
-PID velocityPid(&distError, &velocity, &distSetpoint,kp1,ki1,kd1, DIRECT);           
+//PIDVars{Kp, Ki, Kd, _integral, _prevError, _dt, maxLimit, minLimit};
 
-// Global variables for the steering PID controller
-double kp2=0.3,ki2=0.0,kd2=0.00; // stupid, simple, poor proportional controller
-double rotError=0, angleAdj=0, headingSetpoint=0;
-PID headingPid(&rotError, &angleAdj, &headingSetpoint,kp2,ki2,kd2, DIRECT);           
+/////// heading PID controller
+double rotError=0.0, angleAdj=0.0, headingSetpoint=0.0;
+//PIDVars hVars = {0.04, 0.000049, 26.948, 0.0, 0.0, 0.0, 0.5, -0.5}; // calculated with Z-N method by Jon, but we modified max
+PIDVars hVars = {0.04, 0, 0, 0.0, 0.0, 0.0, 1, -1};
 
+////// velocity PID controller
+double distError=0.0, velocity=0.0, distSetpoint=0.0;
+PIDVars vVars = {0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 1, -1};
+
+/////// functions
 void initMotors(){
   leftServo.attach(leftServoPin);
   rightServo.attach(rightServoPin); // higher makes it go backward
   leftServo.write(90);
   rightServo.write(90);
-  
-  // speed PID
-  velocityPid.SetMode(AUTOMATIC);
-  velocityPid.SetSampleTime(10);
-  velocityPid.SetOutputLimits(-1.0,1.0);
-
-  // rotation PID
-  headingPid.SetMode(AUTOMATIC);
-  headingPid.SetSampleTime(10);
-  headingPid.SetOutputLimits(-1.0,1.0);
 }
 
-void updateMotors(navPoint pn_r){
+void updateMotors(navPoint navpoint, unsigned long deltaT, bool debug){
+  // update deltaT in the vars for PID calculation
+  vVars._dT = deltaT;
+  hVars._dT = deltaT;
 
-  // calculate distance error (distance from setpoint to  nav point)
-  distError = getDistanceRelRobot(pn_r);
-  velocityPid.Compute();
+  // calculate distance error
+  distError = (distSetpoint - getDistanceRelRobot(navpoint)) / 1000;
+  velocity = pidCalc(&vVars, distError, false); 
+   
+  // if we are close enough, stop velocity
+//  if (distError <= distThresh){ 
+//    Serial.println("angle close enough");
+//    velocity = 0;
+//  }
 
   // calculate rotation error (difference between desired heading and measured
-  rotError = getHeadingRelRobot(pn_r);
-  headingPid.Compute();
+  rotError = (headingSetpoint - getHeadingRelRobot(navpoint));
+  angleAdj = pidCalc(&hVars, rotError, true);
+  
+//  // account for "close enough" with angleThresh const
+//  if (abs(rotError) <= angleThresh){
+//      angleAdj = 0;
+//      Serial.println("angle close enough");
+//  }
+  /* 
+   * -angleAdj means the robot should turn left
+   * so we will add it to the left wheel to reduce the left wheel velocity
+   * and increase the right wheel velocity, so turning the robot left toward
+   * the nav point
+   * If the angleAdj is positive, it means the navPoint is toward the right. 
+   * it will add to the left wheel, and reduce the right wheel velocity.
+   * This will drive the robot toward the right. 
+   */
 
-  Serial.print(millis());
-  Serial.print(", ");
-  Serial.print(", ");
-  Serial.print(distError);
-  Serial.print(", ");
-  Serial.println(velocity);
-  Serial.print(", ");
-  Serial.print(rotError);
-  Serial.print(", ");
-  Serial.println(angleAdj);
-  commandMotors(velocity + angleAdj * 0.25, velocity - angleAdj * 0.25);
+   // we're zeroing out the velocity here to isolate the heading output's effects for tuning
+//    velocity = 0;
+   
+   // When the velocity is high the values can become saturated. 
+   Serial.print("vel: ");
+   Serial.print(velocity);
+   Serial.print(", angleAdj: ");
+   Serial.println(angleAdj);
+   double leftMotorVal = velocity + angleAdj;
+   double rightMotorVal = velocity - angleAdj;
+   double saturationVal = abs(velocity) + abs(angleAdj);
+
+   if (leftMotorVal > 1 || leftMotorVal < -1 || rightMotorVal > 1 || rightMotorVal < -1){
+      leftMotorVal /= saturationVal;
+      rightMotorVal /= saturationVal;
+      if (debugOutput == true){
+        Serial.print("motorVals (SAT): ");
+        Serial.print(leftMotorVal);
+        Serial.print(", ");
+        Serial.print(rightMotorVal);
+        Serial.print(", saturation value: ");
+        Serial.println(saturationVal);
+      }
+   } else {
+      if (debugOutput == true){
+        Serial.print("motorVals (UNSAT): ");
+        Serial.print(leftMotorVal);
+        Serial.print(", ");
+        Serial.print(rightMotorVal);
+        
+      }
+   }
+   
+   commandMotors(leftMotorVal, rightMotorVal);
 }
 
 void commandMotors(double leftInput, double rightInput){
   /* take in a value of -1 to 1 for each motor, and turn that
   *  into the duty cycle to each motor. 
+  *  
+  *  The servos are oriented in opposite directions, so forward is 0 for right servo
+  *  and forward is 180 for the left servo. 
   */
-  int leftServoDC;
-  int rightServoDC;
-
-  // map inputs to servo write values for pwm generation
-  if (leftInput >= 0.0){
-    leftServoDC = map(leftInput, 0.0, 1.0, 90, 180);
-  } else if (leftInput < 0.0){
-    leftServoDC = map(leftInput, -1.0, 0.0, 0, 90);
-  }
-
-  if (rightInput >= 0.0){
-    rightServoDC = map(rightInput, 0.0, 1.0, 90, 0);
-  } else if (rightInput < 0.0){
-    rightServoDC = map(rightInput, -1.0, 0.0, 180, 90);
-  }
   
-  // write output duty cycle to servos
-  leftServo.write(leftServoDC);
-  rightServo.write(rightServoDC);
+  int leftTemp = (int)(leftInput * 90.0) + 90; // +1 is 180, -1 is 0. 
+  int rightTemp = 90 - (int)(rightInput * 90.0); // +1 is 0, -1 is 180
+  
+  leftServo.write(leftTemp);
+  rightServo.write(rightTemp);
 }
 
 #endif

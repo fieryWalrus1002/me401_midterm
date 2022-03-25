@@ -18,6 +18,13 @@ typedef struct navPoint {
   float y;
 };
 
+navPoint currentNavPoint = {2000.0, 500.0};
+
+void assignNavPointValues(int value){
+  // take an int, and derive coordinates from it
+  
+}
+
 typedef struct navList {
   int currNav = 0;
   int maxNav = 4;
@@ -89,7 +96,7 @@ navPoint getPnr(navPoint navpoint, RobotPose robot){
      *  calculate the position of the navpoint in relation to the robot frame
      *  Returns a navpoint of the navpoint in relation to the robot frame. 
      */
-      double theta = (double)robot.theta / 1000.0; // convert from the int16_t format to double
+      double theta = (float)robot.theta / 1000.0; // convert from the int16_t format to double
       double c = cos(theta);
       double s = sin(theta);
 
@@ -101,7 +108,7 @@ navPoint getPnr(navPoint navpoint, RobotPose robot){
       // translation matrix
       double x1t = c * robot.x + s * robot.y;
       double y1t = -s * robot.x + c * robot.y;
-      
+
       // define new navPoint
       double px = x1 - x1t;
       double py = y1 - y1t;
@@ -120,15 +127,16 @@ double getDistanceRelRobot(navPoint pn_r){
   /* Calculate the distance from a navpoint relative to the robot
    */
    double distance = sqrt(pn_r.x * pn_r.x + pn_r.y * pn_r.y);
+   
    return distance;
 }
 
-double convDegRads(double degree){
+double convDegRads(float degree){
   double radian = degree * (M_PI / 180.0);
   return radian;
 }
 
-double convRadDegs(double radian){
+double convRadDegs(float radian){
   double degree = radian / (M_PI / 180.0);
   return degree;
 }
@@ -149,22 +157,30 @@ void testRotMatStuff(){
     double distance = getDistanceRelRobot(pn_r);
     double headToNav = getHeadingRelRobot(pn_r);
     double headingDegrees = convRadDegs(headToNav);
-    Serial.println(i + 1);
-    Serial.print("(");
-    Serial.print(currentNav.x);
-    Serial.print(", ");
-    Serial.print(currentNav.y);
-    Serial.print("), (");
-    Serial.print(pn_r.x);
-    Serial.print(", ");
-    Serial.print(pn_r.y);
-    Serial.println(")");
-    Serial.print("h:[");
-    Serial.print(headingDegrees);
-    Serial.println("]");
+//    Serial.println(i + 1);
+//    Serial.print("(");
+//    Serial.print(currentNav.x);
+//    Serial.print(", ");
+//    Serial.print(currentNav.y);
+//    Serial.print("), (");
+//    Serial.print(pn_r.x);
+//    Serial.print(", ");
+//    Serial.print(pn_r.y);
+//    Serial.println(")");
+//    Serial.print("h:[");
+//    Serial.print(headingDegrees);
+//    Serial.println("]");
   }
 }
 
+void goToPoint(int xy, navPoint* currentNavPoint){
+    int x = xy / 1000;
+    int y = xy - x * 1000;
+
+    currentNavPoint->x = x;
+    currentNavPoint->y = y;
+
+}
 
 
 #endif
