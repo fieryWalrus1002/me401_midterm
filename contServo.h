@@ -91,10 +91,7 @@ void updateMotors(navPoint navpoint, unsigned long deltaT, bool debug){
 //    velocity = 0;
    
    // When the velocity is high the values can become saturated. 
-   Serial.print("vel: ");
-   Serial.print(velocity);
-   Serial.print(", angleAdj: ");
-   Serial.println(angleAdj);
+
    double leftMotorVal = velocity + angleAdj;
    double rightMotorVal = velocity - angleAdj;
    double saturationVal = abs(velocity) + abs(angleAdj);

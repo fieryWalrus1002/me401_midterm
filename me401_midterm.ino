@@ -20,6 +20,8 @@
 unsigned long lastdT = 0;
 unsigned long dT = 0;
 
+RobotPose myRobotPose = {true, 2, 1000, 1000, 0};
+
 enum robotStates {
   ATTACK, // search for balls in neutral and opposing base
   CAPTURE, // return with a ball to home base
@@ -27,8 +29,6 @@ enum robotStates {
   TEST // for testing functionality
 };
 enum robotStates robotState = ATTACK;
-RobotPose myRobotPose;
-
 
 enum testStates {
   DISTANCE, // checks getDistance() values and prints to serial
@@ -157,13 +157,20 @@ void setup() {
   
   initIrSensor(); // Sharp IR distance sensor initialize
   Serial.println("ir sensor online");
-  initNavSystem();
-  
+
+
   if (RADIO == true){
     ME401_Radio_initialize(); // Initialize the RFM69HCW radio  
+    checkStatus();
     Serial.println("radio online");
   }
-  
+
+  initNavSystem(&myRobotPose); // requires radio and checkStatus() run already
+  Serial.println("nav system online");
+
+  initBtSerial();
+  Serial.println("btserial online");
+  attachCoreTimerService(btDebugCallback);
   // Initialize the PID and IR interrupts
   // TODO: Change the kp, ki, kd in the ME491_PID_IR.h file to match your new tunings
   //       that you did after installing the sensor on your robot
@@ -177,7 +184,7 @@ void loop() {
       process_inc_byte(BTSerial.read());
   }
     
-
+ 
 
   // set the time in seconds
   dT = (millis() - lastTime) / 1000;
@@ -198,7 +205,28 @@ void loop() {
   if (debugOutput == true){
     pidSerialOutput(pn_r);
   }
-
-
  lastdT = dT;
+}
+
+uint32_t btDebugCallback(uint32_t currentTime) {
+  navPoint pn_r = getPnr(currentNavPoint, myRobotPose);
+  float currentDist = getDistanceRelRobot(pn_r);
+  float desiredHeading = getHeadingRelRobot(pn_r);
+  float x = currentNavPoint.x;
+  float y = currentNavPoint.y;
+  BTSerial.print(millis());
+  BTSerial.print(", ");
+  BTSerial.print(x);
+  BTSerial.print(", ");
+  BTSerial.print(y);
+  BTSerial.print(", ");
+  BTSerial.print(currentDist);
+  BTSerial.print(", ");
+  BTSerial.print(velocity);
+  BTSerial.print(", ");
+  BTSerial.print(desiredHeading);
+  BTSerial.print(", ");
+  BTSerial.println(angleAdj);
+
+  return (currentTime + CORE_TICK_RATE * 2000);
 }

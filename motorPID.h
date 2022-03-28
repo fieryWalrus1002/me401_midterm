@@ -46,22 +46,22 @@ double pidCalc(PIDVars *vars, double currentError, bool debug){
   else if (output < (vars->minLimit))
     output = vars->minLimit;
 
-  if (debug == true){
-     Serial.print("Kp: ");
-    Serial.print(vars->Kp);
-    Serial.print(", error: ");
-    Serial.print(currentError);
-    Serial.print(", Ki: ");
-    Serial.print(vars->Ki);
-    Serial.print(", integral: ");
-    Serial.print(vars->_integral);
-    Serial.print(", Kd: ");
-    Serial.print(vars->Kd);
-    Serial.print(", damper: ");
-    Serial.print(dampError);
-    Serial.print(", output: ");
-    Serial.println(output);  
-  }
+//  if (debug == true){
+//     Serial.print("Kp: ");
+//    Serial.print(vars->Kp);
+//    Serial.print(", error: ");
+//    Serial.print(currentError);
+//    Serial.print(", Ki: ");
+//    Serial.print(vars->Ki);
+//    Serial.print(", integral: ");
+//    Serial.print(vars->_integral);
+//    Serial.print(", Kd: ");
+//    Serial.print(vars->Kd);
+//    Serial.print(", damper: ");
+//    Serial.print(dampError);
+//    Serial.print(", output: ");
+//    Serial.println(output);  
+//  }
 
   return output;
 }

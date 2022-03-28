@@ -12,11 +12,18 @@
 #define HOMERADIUS 50
 #define M_PI 3.14159
 #define DT 50 // length of one step of movement time
+#include "main.h"
 
 typedef struct navPoint {
   float x; 
   float y;
 };
+
+
+
+// function prototypes to make the compiler quit complaining
+void setHomeBase(RobotPose);
+void editNavPoint(navPoint, float, float);
 
 navPoint currentNavPoint = {2000.0, 500.0};
 
@@ -24,6 +31,13 @@ void assignNavPointValues(int value){
   // take an int, and derive coordinates from it
   
 }
+
+void editNavPoint(navPoint *nextPoint, float x, float y){
+  nextPoint->x = x;
+  nextPoint->y = y;
+}
+
+
 
 typedef struct navList {
   int currNav = 0;
@@ -46,8 +60,11 @@ navPoint testCourse[] = {
                         };   
 
 
-void initNavSystem(){
-//  setHomeBase(); // sets home base location based on what quadrant you start the robot in
+void initNavSystem(RobotPose *currentPose){
+    setHomeBase(*currentPose); // sets home base location based on what quadrant you start the robot in
+    float x = currentPose->x;
+    float y = currentPose->y;
+    editNavPoint(&currentNavPoint, x, y); // then hand it to the robot and change currentNavPoint to our current position 
 }
 
 void setHomeBase(RobotPose myStartPose){
@@ -174,8 +191,9 @@ void testRotMatStuff(){
 }
 
 void goToPoint(int xy, navPoint* currentNavPoint){
-    int x = xy / 1000;
-    int y = xy - x * 1000;
+   // 1020.0140 / 10000 = 
+    int x = xy / 10000;
+    int y = xy - x * 10000;
 
     currentNavPoint->x = x;
     currentNavPoint->y = y;
