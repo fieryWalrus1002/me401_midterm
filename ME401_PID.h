@@ -62,6 +62,7 @@ void setupPIDandIR(void)
 
   // Initialize the timer interrupt that decodes the IR beacon signal
   attachCoreTimerService(TimerCallback);
+
 }
 
 

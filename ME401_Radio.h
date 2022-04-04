@@ -1,4 +1,7 @@
 
+#ifndef _ME401_RADIO_H_
+#define _ME401_RADIO_H_
+
 #include <RFM69.h>
 #include <SPI.h>
 
@@ -331,3 +334,5 @@ void ME401_Radio_initialize(void)
 //  if (ENCRYPT)
 //    radio.encrypt(ENCRYPTKEY);
 }
+
+#endif

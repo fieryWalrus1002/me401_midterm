@@ -13,104 +13,186 @@
  *  Power supplied to J1 from J14
  *  Reference Manual located at:
  *  https://digilent.com/reference/add-ons/motor-shield/reference-manual
-
-*/
+ */
+ 
 #ifndef _CONT_SERVO_H_
 #define _CONT_SERVO_H_
 #include <Servo.h>
-//#include "motorPID.h"
+#include "main.h"
+#include "btserial.h"
+#include "navigation.h"
 
 #define leftServoPin 32
 #define rightServoPin 31
 #define maxInput 1.0
 #define minInput -1.0
-#define LOFFSET 2 // offset of servo value to get no motion. 92 in this case
-#define ROFFSET 2.5 //
 Servo leftServo;
 Servo rightServo;
+int leftServoDC;
+int rightServoDC;
+unsigned long lastTime;
+bool reverseMotors = false;
+float distTh = 25;
+float rotTh = 0.01;
+struct RobotVars{
+  float v;
+  float l;
+  float r;
+  float tD;
+  float tA;
+  navPoint pn_r;
+  float currentDist;
+  float desiredHeading;
+  float angleAdj;
+} robotVars;
 
+//  navPoint pn_r = getPnr(currentNavPoint, myRobotPose);
+//  float currentDist = getDistanceRelRobot(pn_r);
+//  float desiredHeading = getHeadingRelRobot(pn_r);
+//  float x = currentNavPoint.x;
+//  float y = currentNavPoint.y;
+
+float const ERRDECAY = 0.1; // rate of integral decay
+
+int sampleTime = 1000; // length of time between calls to update PID, in ms
+const double distThresh = 5; // number of mm that we call "close enough"
+const double angleThresh = 0.001; // arbitrary low "close enough" rotation threshold. helps control jitter at stop, due to changing coordinates on radio.
 // function prototype
 void commandMotors(double leftInput, double rightInput);
+double pidCalc(PIDVars *vars, double currentError, bool debug);
 
-// Global variables for the motor PID controller
-double kp1=0.3,ki1=0.0,kd1=0.00; // stupid, simple, poor proportional controller
-double distErr=0, velocity=0, targetDist=0;
-PID motorPid(&distErr, &velocity, &targetDist,kp1,ki1,kd1, DIRECT);           
+//PIDVars{Kp, Ki, Kd, _integral, _prevError, _dt, maxLimit, minLimit};
+/////// heading PID controller
+double rotError=0.0, angleAdj=0.0, headingSetpoint=0.0;
 
-// Global variables for the steering PID controller
-double kp2=0.3,ki2=0.0,kd2=0.00; // stupid, simple, poor proportional controller
-double rotErr=0, steer=0, heading=0;
-PID steerPid(&rotErr, &steer, &heading,kp2,ki2,kd2, DIRECT);           
+//PIDVars hVars = {0.5, 0.000049, 26.948, 0.0, 0.0, 0.0, 0.5, -0.5}; // calculated with Z-N method by Jon, but we modified max//
 
+PIDVars hVars = {1, 0, 0, 0.0, 0.0, 0.0, 100, -100};
+
+////// velocity PID controller
+double distError=0.0, velocity=0.0, distSetpoint=0.0;
+PIDVars vVars = {1, 0.0, 0.0, 0.0, 0.0, 0.0, 100, -100};
+
+/////// functions
 void initMotors(){
   leftServo.attach(leftServoPin);
   rightServo.attach(rightServoPin); // higher makes it go backward
-
-  // speed PID
-  motorPid.SetMode(AUTOMATIC);
-  motorPid.SetSampleTime(10);
-  motorPid.SetOutputLimits(-1.0,1.0);
-
-  // rotation PID
-  steerPid.SetMode(AUTOMATIC);
-  steerPid.SetSampleTime(10);
-  steerPid.SetOutputLimits(-1.0,1.0);
-
+  leftServo.write(90);
+  rightServo.write(90);
 }
 
+void updateMotors(navPoint navpoint, unsigned long deltaT, bool debug){
+  static long prevTime = 0;
+  long now = millis();
+  
+  // update deltaT in the vars for PID calculation
+  vVars._dT = deltaT;
+  hVars._dT = deltaT;
 
-void updateMotors(navPoint navpoint, RobotPose pose){
-  // calculate movement error
-  distError = calcDistError(navpoint, pose);  //(navPoint navpoint, robotPose pose)
-  targetDist = currentTarget.x;
-  motorPid.Compute();
+  float targetDist = getDistanceRelRobot(navpoint);
+  float targetAngle = getHeadingRelRobot(navpoint);
 
-  // calculate roation error
-  rotError = calcRotError(navpoint, pose);
-  steerPid.Compute();
+  robotVars.tD = targetDist;
+  robotVars.tA = targetAngle;
+  
+  // calculate distance error
+  distError = (distSetpoint - targetDist) / 3111; // normalized to max distance
+  velocity = pidCalc(&vVars, distError, false); 
+   
+//  velocity = 0;
 
-  // calculate steering error
-  double rotErr=0, steer=0, heading=0;
+  // calculate rotation error (difference between desired heading and measured
+  rotError = (headingSetpoint - targetAngle) / M_PI; // normalized to max angle value in radians
+  angleAdj = pidCalc(&hVars, rotError, true);
+
+  // check to see how close you are
+  if (targetDist < distTh){
+    BTSerial.println("we're here!");
+    angleAdj = 0;
+    velocity = 0;
+    setWaypointFlag(true);
+  }
+
+
+
+   double leftMotorVal = (velocity + angleAdj);
+   double rightMotorVal = (velocity - angleAdj);
 
   Serial.print(millis());
-  Serial.print(", ");
-  Serial.print(distErr);
-  Serial.print(", ");
+  Serial.print(", v: ");
   Serial.print(targetDist);
   Serial.print(", ");
-  Serial.println(velocity);
+  Serial.print(distError);
   Serial.print(", ");
-  Serial.print(heading);
+  Serial.print(velocity);   
+   Serial.print(", h: ");
+  Serial.print(targetAngle);
   Serial.print(", ");
-  Serial.print(rotErr);
+  Serial.print(rotError);
   Serial.print(", ");
-  Serial.println(steer);
-  commandMotors(output + steer, output - steer);
+  Serial.println(angleAdj);   
+   Serial.print(", movtor Val: (");
+   Serial.print(leftMotorVal);
+   Serial.print(", ");
+   Serial.print(rightMotorVal);
+   Serial.println(")");
+   
+   robotVars.l = leftMotorVal;
+   robotVars.r = rightMotorVal;
+   commandMotors(leftMotorVal, rightMotorVal);
+
 }
 
 void commandMotors(double leftInput, double rightInput){
-  /* take in a value of -1 to 1 for each motor, and turn that
+  /* take in a value of -100 to 100 for each motor, and turn that
   *  into the duty cycle to each motor. 
+  *  
+  *  The servos are oriented in opposite directions, so forward is 0 for right servo
+  *  and forward is 180 for the left servo. 
   */
-  int leftServoDC;
-  int rightServoDC;
+   
+   int leftTemp = (leftInput * 90.0) + 90; // +1 is 180, -1 is 0. 
+    int rightTemp = 90 - (rightInput * 90.0); // +1 is 0, -1 is 180
 
-  // map inputs to servo write values for pwm generation
-  if (leftInput >= 0.0){
-    leftServoDC = map(leftInput, 0.0, 1.0, 90 + LOFFSET, 180);
-  } else if (leftInput < 0.0){
-    leftServoDC = map(leftInput, -1.0, 0.0, 0, 90 - LOFFSET);
-  }
-
-  if (rightInput >= 0.0){
-    rightServoDC = map(rightInput, 0.0, 1.0, 90 + ROFFSET, 0);
-  } else if (rightInput < 0.0){
-    rightServoDC = map(rightInput, -1.0, 0.0, 180, 90 + ROFFSET);
-  }
+  leftServo.write(leftTemp);
+  rightServo.write(rightTemp);
+  Serial.print(", (");
+  Serial.print(leftTemp);
+  Serial.print(", ");
+  Serial.print(rightTemp);
+  Serial.println(")");
   
-  // write output duty cycle to servos
-  leftServo.write(leftServoDC);
-  rightServo.write(rightServoDC);
+}
+
+
+
+double pidCalc(PIDVars *vars, double currentError, bool debug){
+  //  vars->_integral += vars->_integral * (1 - ERRDECAY) + currentError; // integral error weighted towards current error, old error values less weight
+
+  double propError = (vars->Kp) * currentError;
+  float dampError = (vars->Kd) * ((currentError - (vars->_prevError))); // derivative of last time step
+  //  float intError = (vars->Ki) * vars->_integral;
+
+  double output = propError + dampError;
+//  double output = propError;  
+  vars->_prevError = currentError;
+  
+  if (output >(vars->maxLimit))
+    output = vars->maxLimit;
+  else if (output < (vars->minLimit))
+    output = vars->minLimit;
+
+  return output;
+}
+
+void setHeadingKp(PIDVars *vars, int newkp){
+  double val = newkp / 100;
+  vars->Kp = val;
+}
+
+void setVelocityKp(PIDVars *vars, int newkp){
+  double val = newkp / 100;
+  vars->Kp = val;
 }
 
 #endif
