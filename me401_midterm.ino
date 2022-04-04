@@ -1,12 +1,13 @@
 #include "main.h"
 #include "ME401_Radio.h"
 #include "ME401_PID.h"
-#include "motorPID.h"
-#include "serial_debug.h"
+
+#include "btserial.h"
 //#include "dcmotor.h"
 #include "ir_dist.h"
 #include "navigation.h"
 #include "contServo.h"
+#include "navlist.h"
 
 #define TESTSTATE AVOID
 #define EXTINT 7 // interrupt 1 is on digital pin 2
@@ -20,7 +21,8 @@
 unsigned long lastdT = 0;
 unsigned long dT = 0;
 
-RobotPose myRobotPose = {true, 2, 1000, 1000, 0};
+RobotPose myRobotPose = {true, 2, 500, 500, 0};
+
 
 enum robotStates {
   ATTACK, // search for balls in neutral and opposing base
@@ -37,6 +39,7 @@ enum testStates {
   AVOID // moves and avoids obstacles
 };
 enum testStates testState = TESTSTATE;
+
 
 void attack(){
 //  Serial.println("ATTACK");
@@ -99,6 +102,11 @@ void printSelfPose(){
 void checkStatus(){
   updateRobotPoseAndBallPositions();
   myRobotPose = getRobotPose(MY_ROBOT_ID);
+  waypointReached = checkWaypointStatus();
+  if (waypointReached == true){
+    currentNavPoint = navlist.getNextNavPoint(); // 
+    setWaypointFlag(false);
+  }
 }
 
 void handleState(){
@@ -163,6 +171,8 @@ void setup() {
     ME401_Radio_initialize(); // Initialize the RFM69HCW radio  
     checkStatus();
     Serial.println("radio online");
+  } else {
+    Serial.println("offline mode");
   }
 
   initNavSystem(&myRobotPose); // requires radio and checkStatus() run already
@@ -183,29 +193,37 @@ void loop() {
   {
       process_inc_byte(BTSerial.read());
   }
-    
- 
 
+
+    
+// 
+//
   // set the time in seconds
   dT = (millis() - lastTime) / 1000;
  
-
   // update the environment and change states as required
-  checkStatus(); // check the status of the game environment
-//  changeState(); // check to see if a state change is called for
-//  handleState(); // execute current state function
+   if (RADIO == true){
+      checkStatus(); // check the status of the game environment
+      changeState(); // check to see if a state change is called for
+      handleState(); // execute current state function
+   } else {
+//    myRobotPose = {true, 2, 500, 500, 0};
+//    currentNavPoint = {1000, 1000};
+  }
+ Serial.print("np: (");
+ Serial.print(currentNavPoint.x);
+  Serial.print(", ");
+  Serial.print(currentNavPoint.y);
+  Serial.print(")");
+
 
   // update the relative position of the nav point
   navPoint pn_r = getPnr(currentNavPoint, myRobotPose);
-  
+
   // use navpoint and robot pose to calculate PID changes needed and modify motor output
   updateMotors(pn_r, dT, debugPID);
 
-  // debug PID output
-  if (debugOutput == true){
-    pidSerialOutput(pn_r);
-  }
- lastdT = dT;
+  lastdT = dT;
 }
 
 uint32_t btDebugCallback(uint32_t currentTime) {
@@ -214,19 +232,8 @@ uint32_t btDebugCallback(uint32_t currentTime) {
   float desiredHeading = getHeadingRelRobot(pn_r);
   float x = currentNavPoint.x;
   float y = currentNavPoint.y;
-  BTSerial.print(millis());
-  BTSerial.print(", ");
-  BTSerial.print(x);
-  BTSerial.print(", ");
-  BTSerial.print(y);
-  BTSerial.print(", ");
-  BTSerial.print(currentDist);
-  BTSerial.print(", ");
-  BTSerial.print(velocity);
-  BTSerial.print(", ");
-  BTSerial.print(desiredHeading);
-  BTSerial.print(", ");
-  BTSerial.println(angleAdj);
+  String outputBuf = (String)millis() + "," + (String)x + "," + (String)y + "," + (String)currentDist + "," + (String)velocity  + "," + (String)desiredHeading  + "," + (String)angleAdj + ";";
+  BTSerial.println(outputBuf);
 
   return (currentTime + CORE_TICK_RATE * 2000);
 }

@@ -8,11 +8,15 @@
 
 #ifndef _NAVIGATION_H_
 #define _NAVIGATION_H_
+
+#include "navlist.h"
+#include "main.h"
+#include "ME401_Radio.h"
 // home area is quarter circle, area to be defined
 #define HOMERADIUS 50
 #define M_PI 3.14159
 #define DT 50 // length of one step of movement time
-#include "main.h"
+
 
 typedef struct navPoint {
   float x; 
@@ -20,12 +24,34 @@ typedef struct navPoint {
 };
 
 
+class navList
+{  
+
+  public:
+    void init(navPoint navPoints[]);
+    navPoint getNextNavPoint();
+    void addNavPoint(navPoint navpoint);
+  private:
+    navPoint nav[10];
+    unsigned int currNav = 0;
+    unsigned int maxNav = 4;
+};
+
+navList navlist;
+
+
+navPoint currentNavPoint = {1000.0, 1000.0};
+
+bool waypointReached = false;
+
 
 // function prototypes to make the compiler quit complaining
 void setHomeBase(RobotPose);
 void editNavPoint(navPoint, float, float);
 
-navPoint currentNavPoint = {2000.0, 500.0};
+void setWaypointFlag(bool flag){
+  waypointReached = flag;
+  }
 
 void assignNavPointValues(int value){
   // take an int, and derive coordinates from it
@@ -38,18 +64,6 @@ void editNavPoint(navPoint *nextPoint, float x, float y){
 }
 
 
-
-typedef struct navList {
-  int currNav = 0;
-  int maxNav = 4;
-  navPoint nav[10] = {
-                        {250.0, 250.0}, 
-                        {1750.0, 250.0}, 
-                        {1750.0, 1750.0}, 
-                        {250.0, 1750.0},
-                       };   
-} navlist;
-
 navPoint home_base;
 
 navPoint testCourse[] = {
@@ -58,13 +72,19 @@ navPoint testCourse[] = {
                           {1750.0, 1750.0}, 
                           {250.0, 1750.0},
                         };   
+void setWPFlag(bool flag){
+  waypointReached = flag;
+}
 
+bool checkWaypointStatus(){
+  return waypointReached;
+}
 
 void initNavSystem(RobotPose *currentPose){
     setHomeBase(*currentPose); // sets home base location based on what quadrant you start the robot in
-    float x = currentPose->x;
-    float y = currentPose->y;
-    editNavPoint(&currentNavPoint, x, y); // then hand it to the robot and change currentNavPoint to our current position 
+//    float x = currentPose->x;
+//    float y = currentPose->y;
+//    editNavPoint(&currentNavPoint, x, y); // then hand it to the robot and change currentNavPoint to our current position 
 }
 
 void setHomeBase(RobotPose myStartPose){
@@ -95,17 +115,7 @@ void setHomeBase(RobotPose myStartPose){
   }
 }
 //
-//navPoint getNextNavPoint(){
-//  // TODO: better navPoint buffer for actual use. This is just for a square pattern test.
-//  int currNav = navlist.currNav;
-//  navPoint newNavPoint  = navlist.nav[currNav];
-//  currNav += 1;
-//  if (currNav > navlist.maxNav){
-//    /// just start over again
-//    navlist.currNav = 0;
-//  }
-//  return newNavPoint;
-//}
+
 
 navPoint getPnr(navPoint navpoint, RobotPose robot){
     /* get position of navPoint wrt robot frame
@@ -190,13 +200,23 @@ void testRotMatStuff(){
   }
 }
 
+
+
 void goToPoint(int xy, navPoint* currentNavPoint){
    // 1020.0140 / 10000 = 
-    int x = xy / 10000;
-    int y = xy - x * 10000;
-
+    float x = xy / 10000;
+    float y = xy - (x * 10000);
+    
     currentNavPoint->x = x;
     currentNavPoint->y = y;
+
+    
+//    SerialBT.print("Go to point (");
+//    SerialBT.print(x);
+//    SerialBT.print(", ");
+//    SerialBT.print(y);
+//    SerialBT.println(")");
+//    
 
 }
 
