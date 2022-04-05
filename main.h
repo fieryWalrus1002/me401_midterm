@@ -1,38 +1,39 @@
+/*  
+ *  Main header file
+ *  Written by Magnus Wood (magnus.wood@wsu.edu) on 3-24-22
+ *  For ME401 Spring 22
+ *  
+ *
+ *  
+ *  
+ *   
+*/
+
+
 #ifndef _MAIN_H_
 #define _MAIN_H_
 #define MY_ROBOT_ID 2 // CHANGE THIS TO YOUR TEAM NUMBER
 #include <SoftwareSerial.h>
-
-bool RADIO = true;
-bool debugPID = false; // output PID paramters
-bool debugOutput = false; // output position and angle
+#include "navsystem.h"
+#include "motors.h"
 
 
-
-SoftwareSerial BTSerial(34, 35);
-
-struct PIDVars{
-  // PID controller params
-  double Kp;
-  double Ki;
-  double Kd;
-  
-  // stuff we need to keep track of
-  double _integral;
-  double _prevError;
-  double _dT;
-  
-  // max output limit for the controller
-  double maxLimit;
-  double minLimit;
+enum robotStates {
+  ATTACK, // search for balls in neutral and opposing base
+  CAPTURE, // return with a ball to home base
+  DEFEND, // interpose robot between opposing robots and home base
+  TEST // for testing functionality
 };
+
+enum robotStates robotState = ATTACK;
+SoftwareSerial BTSerial(34, 35);
+RobotPose myRobotPose = {true, MY_ROBOT_ID, 500, 500, 0};
+NavPoint pn_r;
+bool RADIO = true;
+bool serialDebug = true;
 
 void attack();
 void defend();
 void capture();
-void test();
-
-
-
 
 #endif
