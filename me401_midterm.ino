@@ -25,10 +25,15 @@ void capture(){
 
 
 void checkStatus(){
-  updateRobotPoseAndBallPositions();
-  myRobotPose = getRobotPose(MY_ROBOT_ID);
-  nav.update(&currentNavPoint);
-  }
+    // update all robot, ball and global obstacle positions with radio data
+    updateRobotPoseAndBallPositions();
+
+    // assign our robot's information to a robotPose so we can use it easily
+    myRobotPose = getRobotPose(MY_ROBOT_ID);
+
+    // update the navigation systems data
+    nav.update(&currentNavPoint);
+}
 
 void handleState(){
 //  Serial.println("handleState()");
