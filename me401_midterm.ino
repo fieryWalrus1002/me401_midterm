@@ -11,8 +11,8 @@
 
 void attack(){
 //  Serial.println("ATTACK");
-  BallPosition closestBallPos = comms.getClosestBallPos();
-  nav.editNavPoint(&currentNavPoint,closestBallPos.x, closestBallPos.y);
+//  BallPosition closestballPos = ballPositions[0];
+  nav.editNavPoint(&currentNavPoint,ballPositions[0].x,ballPositions[0].y);
 }
 
 void defend(){
@@ -24,6 +24,7 @@ void capture(){
 }
 
 void checkStatus(){
+    
     // update all robot, ball and global obstacle positions with radio data
     comms.updateRobotPoseAndBallPositions();
 
@@ -32,6 +33,7 @@ void checkStatus(){
 
     // update the navigation systems data
     nav.update(&currentNavPoint);
+   
 }
 
 void handleState(){
@@ -83,7 +85,8 @@ void setup() {
   initBtSerial();
   Serial.println("btserial online");
   attachCoreTimerService(btDebugCallback);
-
+  motors.leftServo.attach(leftServoPin);
+  motors.rightServo.attach(rightServoPin);
   // Initialize the PID and IR interrupts
   // TODO: Change the kp, ki, kd in the ME491_PID_IR.h file to match your new tunings
   //       that you did after installing the sensor on your robot
