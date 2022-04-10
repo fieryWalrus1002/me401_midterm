@@ -19,15 +19,6 @@ RobotPose Comms::getRobotPose (int robotID)
   return retval;
 }
 
-int Comms::getBallPositions (BallPosition (&pos)[NUM_BALLS])
-{  
-  for (int i = 0 ; i < numBalls ; i++)
-  {
-    pos[i] = ballPositions[i];    
-  }
-  return numBalls;
-}
-
 BallPosition Comms::getClosestBallPos(){
   return ballPositions[0];
 }
@@ -92,7 +83,7 @@ void Comms::updateRobotPoseAndBallPositions (void)
     if (counter > 1000 && idx == 0){
       //failure to find radio message
       Serial.println("breaking radio");
-      break;
+      return;
     }
     if (radio.receiveDone()) // Got one!
     {

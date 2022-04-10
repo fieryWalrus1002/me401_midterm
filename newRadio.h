@@ -46,7 +46,6 @@ class Comms {
     
     
     int getNumRobots();
-    int getBallPositions (BallPosition (&pos)[NUM_BALLS]);
     void updateRobotPoseAndBallPositions();
     RobotPose getRobotPose (int robotID);
     BallPosition getClosestBallPos();
