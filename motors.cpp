@@ -70,26 +70,26 @@ void Motors::update(NavPoint navpoint, bool debug){
    double leftMotorVal = (velocity + angleAdj);
    double rightMotorVal = (velocity - angleAdj);
 
-    if (debug == true){
-        Serial.print(millis());
-        Serial.print(", v: ");
-        Serial.print(targetDist);
-        Serial.print(", ");
-        Serial.print(distError);
-        Serial.print(", ");
-        Serial.print(velocity);   
-        Serial.print(", h: ");
-        Serial.print(targetAngle);
-        Serial.print(", ");
-        Serial.print(rotError);
-        Serial.print(", ");
-        Serial.println(angleAdj);   
-        Serial.print(", movtor Val: (");
-        Serial.print(leftMotorVal);
-        Serial.print(", ");
-        Serial.print(rightMotorVal);
-        Serial.println(")");
-    }
+//    if (debug == true){
+//        Serial.print(millis());
+//        Serial.print(", v: ");
+//        Serial.print(targetDist);
+//        Serial.print(", ");
+//        Serial.print(distError);
+//        Serial.print(", ");
+//        Serial.print(velocity);   
+//        Serial.print(", h: ");
+//        Serial.print(targetAngle);
+//        Serial.print(", ");
+//        Serial.print(rotError);
+//        Serial.print(", ");
+//        Serial.println(angleAdj);   
+//        Serial.print(", movtor Val: (");
+//        Serial.print(leftMotorVal);
+//        Serial.print(", ");
+//        Serial.print(rightMotorVal);
+//        Serial.println(")");
+//    }
      
    robotVars.l = leftMotorVal;
    robotVars.r = rightMotorVal;

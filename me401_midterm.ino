@@ -1,17 +1,18 @@
 #include "main.h"
-#include "ME401_Radio.h"
+//#include "ME401_Radio.h"
 #include "ME401_PID.h"
 #include "btserial.h"
 #include "ir_dist.h"
 #include "navsystem.h"
+#include "newRadio.h"
 
 #define TESTSTATE AVOID
 #define EXTINT 7 // interrupt 1 is on digital pin 2
 
-
-
 void attack(){
 //  Serial.println("ATTACK");
+  BallPosition closestBallPos = comms.getClosestBallPos();
+  nav.editNavPoint(&currentNavPoint,closestBallPos.x, closestBallPos.y);
 }
 
 void defend(){
@@ -22,14 +23,12 @@ void capture(){
 //  currentNavPoint = home_base;
 }
 
-
-
 void checkStatus(){
     // update all robot, ball and global obstacle positions with radio data
-    updateRobotPoseAndBallPositions();
+    comms.updateRobotPoseAndBallPositions();
 
     // assign our robot's information to a robotPose so we can use it easily
-    myRobotPose = getRobotPose(MY_ROBOT_ID);
+    myRobotPose = comms.getRobotPose(MY_ROBOT_ID);
 
     // update the navigation systems data
     nav.update(&currentNavPoint);
@@ -64,6 +63,8 @@ void changeState(){
 //  Serial.println("changeState");
 }
 
+
+
 void setup() {
   Serial.begin(115200);
   Serial.println("serial begin");
@@ -72,7 +73,7 @@ void setup() {
   Serial.println("ir sensor online");
 
   if (RADIO == true){
-    ME401_Radio_initialize(); // Initialize the RFM69HCW radio  
+    comms.ME401_Radio_initialize(); // Initialize the RFM69HCW radio  
     checkStatus();
     Serial.println("radio online");
   } else {
@@ -96,6 +97,21 @@ void loop() {
       process_inc_byte(BTSerial.read());
   }
 
+
+//  while (blocked == true):
+//  float bestAngle = distanceSweep();
+//
+//  NavPoint avoidancePoint = findPath(bestAngle); 
+//    pick a point out in front of the orbot, at that angle, and return that point. 
+//    
+//  editNavPoint(&currentNavPoint, avoidancePoint.x, avoidancePoint.y);
+//
+//  if (wayPointreached == true){
+//    blocked = false;
+//    editNavPoint(^current, goal.x, goal.y);
+//  }
+  
+  
 //   // set the time in seconds
 //   dT = (millis() - lastTime) / 1000;
  

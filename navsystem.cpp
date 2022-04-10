@@ -176,6 +176,10 @@ double NavSystem::getDistanceRelRobot(NavPoint pn_r){
    return distance;
 }
 
+NavPoint getNearestGlobalObstacle(){
+  
+}
+
 double NavSystem::convDegRads(float degree){
   double radian = degree * (M_PI / 180.0);
   return radian;
@@ -218,6 +222,3 @@ void NavSystem::getNextNavPoint(NavPoint *oldNavPoint){
   
 void NavSystem::addNavPoint(NavPoint navpoint){
 }
-
-
-

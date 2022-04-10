@@ -65,7 +65,8 @@
 #ifndef _NAVSYSTEM_H_
 #define _NAVSYSTEM_H_
 // #include "navlist.h"
-#include "ME401_Radio.h"
+#include "newRadio.h"
+//#include "ME401_Radio.h"
 #define M_PI 3.14159
 
 class NavPoint {
