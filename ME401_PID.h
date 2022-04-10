@@ -9,12 +9,12 @@ const int MotorDirectionPin = 4;
 const int MotorPWMPin = 3;
 
 // PID tuning gains
-//float ku = FIND THIS; // ultimate gain
-//float Tu = FIND THIS; // seconds
+float ku = 9.0; // ultimate gain
+float Tu = 0.45; // seconds
 //double kp=0.8*ku,ki=0.0,kd=0.8*ku*Tu*0.125; // classic PD fomr Ziegler Nichols table
 
-double kp=1.0,ki=0.0,kd=0.0; // stupid, simple, poor proportional controller
-
+//double kp=1.0,ki=0.0,kd=0.0; // stupid, simple, poor proportional controller
+double kp = 0.6*ku,ki = 2.0*kp/Tu,kd = kp*Tu*0.125; //classid pid
 
 // Global variables for quadrature decoder
 static volatile char lastLeftA;

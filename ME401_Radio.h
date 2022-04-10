@@ -329,6 +329,7 @@ void ME401_Radio_initialize(void)
   radio.setHighPower(); // Always use this for RFM69HCW
 //  pinMode(RADIO_LED, OUTPUT);
 //  digitalWrite(RADIO_LED, LOW);
+  
 
   // Turn on encryption if desired:
 //  if (ENCRYPT)
