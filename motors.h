@@ -97,7 +97,7 @@ class Motors {
         void setHeadingKp(PIDVars*, int);
         void setVelocityKp(PIDVars*, int);
         PIDVars vVars = {1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 100, -100};
-        PIDVars hVars = {1, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 100, -100};
+        PIDVars hVars = {2, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 100, -100};
         Servo leftServo;
         Servo rightServo;
         float distTh = 25;
@@ -119,4 +119,3 @@ Motors motors;
 
 
 #endif
-

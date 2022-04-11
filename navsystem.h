@@ -1,7 +1,7 @@
     /*  
     *  Navigation systems and functions
-    *  Written by Magnus Wood (magnus.wood@wsu.edu) on 4-4-22
-    *  Modified 4-6-22
+    *  Written by Magnus Wood (magnus.wood@wsu.edu) and Ahmed 
+    *  4-4-22, modified 4-11-22
     *  For ME401 Spring 22 miderm robot project
     * 
     *  Structs: 
@@ -67,7 +67,13 @@
 // #include "navlist.h"
 #include "newRadio.h"
 //#include "ME401_Radio.h"
+
 #define M_PI 3.14159
+#define CLOSE_ENOUGH 75
+const int ARENA_MIN = -250;
+const int ARENA_MAX = 2500;
+const int BASE_RADIUS = 400;
+
 
 class NavPoint {
     public:
@@ -80,8 +86,10 @@ class NavPoint {
 class NavSystem
 {  
   public:
-    NavPoint currentNavPoint = {1000.0, 1000.0};
+    bool closeEnough(RobotPose robot, NavPoint point);
     void update(NavPoint*);
+    NavPoint getNavPointFromBallPos(BallPosition ballPos);
+    NavPoint findNearestBall();
     void setHomeBase(RobotPose);
     bool checkWaypointStatus();
     void editNavPoint(NavPoint*, float, float);

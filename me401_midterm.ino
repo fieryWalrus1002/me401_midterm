@@ -10,7 +10,7 @@
 #define EXTINT 7 // interrupt 1 is on digital pin 2
 
 void attack(){
-  nav.editNavPoint(&currentNavPoint,ballPositions[0].x,ballPositions[0].y);
+  // 
 }
 
 void defend(){
@@ -62,11 +62,11 @@ void handleState(){
 
 void changeState(){
 //  Serial.println("changeState");
-    if (robotState == ATTACK){
-      if (numBalls == 0){
-        robotState = DEFEND;
-      }
-    }
+//    if (robotState == ATTACK){
+//      if (numBalls == 0){
+//        robotState = DEFEND;
+//      }
+//    }
 }
 
 
@@ -88,7 +88,7 @@ void setup() {
 
   initBtSerial();
   Serial.println("btserial online");
-  attachCoreTimerService(btDebugCallback);
+
   motors.leftServo.attach(leftServoPin);
   motors.rightServo.attach(rightServoPin);
 
@@ -97,6 +97,12 @@ void setup() {
   // TODO: Change the kp, ki, kd in the ME491_PID_IR.h file to match your new tunings
   //       that you did after installing the sensor on your robot
   //  setupPIDandIR();
+  
+  // serial output every 2s
+  attachCoreTimerService(btDebugCallback);
+
+  // update the goal position every 500 ms
+  attachCoreTimerService(updateCallback);
 }
 
 void loop() {
@@ -105,24 +111,6 @@ void loop() {
   {
       process_inc_byte(BTSerial.read());
   }
-
-
-//  while (blocked == true):
-//  float bestAngle = distanceSweep();
-//
-//  NavPoint avoidancePoint = findPath(bestAngle); 
-//    pick a point out in front of the orbot, at that angle, and return that point. 
-//    
-//  editNavPoint(&currentNavPoint, avoidancePoint.x, avoidancePoint.y);
-//
-//  if (wayPointreached == true){
-//    blocked = false;
-//    editNavPoint(^current, goal.x, goal.y);
-//  }
-  
-  
-//   // set the time in seconds
-//   dT = (millis() - lastTime) / 1000;
  
   // update the environment and change states as required
    if (RADIO == true){
@@ -131,13 +119,18 @@ void loop() {
       handleState(); // execute current state function
    }
 
+  // check to see if we have a clear path to our goal point
+  nav.checkPath(&currentNavPoint);
+
   // update the relative position of the nav point
   pn_r = nav.getPnr(currentNavPoint, myRobotPose);
 
-  // use navpoint and robot pose to calculate PID changes needed and modify motor output
-  motors.update(pn_r, serialDebug);
+  // are we close enough to our currentNavPoint?
+  bool areWeThereYet = nav.closeEnough(myRobotPose, currentNavPoint);
 
-//   lastdT = dT;
+  // use navpoint and robot pose to calculate PID changes needed and modify motor output
+  motors.update(pn_r, areWeThereYet);
+
 }
 
 uint32_t btDebugCallback(uint32_t currentTime) {
@@ -153,9 +146,18 @@ uint32_t btDebugCallback(uint32_t currentTime) {
                             (String)motors.velocity  + "," + 
                             (String)desiredHeading  + "," + 
                             (String)motors.angleAdj + ";";
-        BTSerial.println(outputBuf);
+        Serial.println(outputBuf);
     }
   
 
   return (currentTime + CORE_TICK_RATE * 2000);
+}
+
+uint32_t updateCallback(uint32_t currentTime) {
+  if (robotState == ATTACK){
+    // find nearest ball
+    NavPoint nearestBall = nav.findNearestBall();
+    goalPoint = nav.findNearestBall();
+  }
+  return (currentTime + CORE_TICK_RATE * 500);
 }

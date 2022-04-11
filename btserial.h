@@ -91,7 +91,7 @@ void handle_action()
         motors.commandMotors(0, 0);
         break;
     case GOT_G:
-        nav.goToPoint(current_value, &nav.currentNavPoint);
+        nav.goToPoint(current_value, &currentNavPoint);
         BTSerial.print("currentNavPoint set");
         break;
     case GOT_H:

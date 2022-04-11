@@ -19,9 +19,6 @@ RobotPose Comms::getRobotPose (int robotID)
   return retval;
 }
 
-BallPosition Comms::getClosestBallPos(){
-  return ballPositions[0];
-}
 
 void Comms::PrintHex8(uint8_t *data, uint8_t length) // prints 8-bit data in hex with leading zeroes
 {
@@ -82,7 +79,7 @@ void Comms::updateRobotPoseAndBallPositions (void)
     }
     if (radio.receiveDone()) // Got one!
     {
-      printRFMMessage(radio.DATALEN, (uint8_t*)radio.DATA);
+//      printRFMMessage(radio.DATALEN, (uint8_t*)radio.DATA);
       
       // If the start of a message hasn't been found, look for the '$'
       if (!msg_start_found)
@@ -169,8 +166,8 @@ void Comms::updateRobotPoseAndBallPositions (void)
     int16_t Y = convert_bytes_to_int16(&lbuf[bidx + 2]); //lbuf[bidx + 2] << 8 | lbuf[bidx + 3];
     int16_t H = convert_bytes_to_int16(&lbuf[bidx + 4]); //lbuf[bidx + 2] << 8 | lbuf[bidx + 3];
 
-    ballPositions[i].x = X;
-    ballPositions[i].y = Y;
+    ballPositions[i].x = (float)X;
+    ballPositions[i].y = (float)Y;
 //    ballPositions[i].hue = H;
   }
  

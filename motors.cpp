@@ -47,9 +47,14 @@
 #include "motors.h"
 #include "navsystem.h"
 
-void Motors::update(NavPoint navpoint, bool debug){
+void Motors::update(NavPoint navpoint, bool reachedPoint){
   static long prevTime = 0;
   long deltaT = millis() - prevTime;
+
+  if (reachedPoint == true){
+    commandMotors(0, 0);
+    return;
+  }
   
   vVars._dT = deltaT;
   hVars._dT = deltaT;
@@ -69,30 +74,9 @@ void Motors::update(NavPoint navpoint, bool debug){
 
    double leftMotorVal = (velocity + angleAdj);
    double rightMotorVal = (velocity - angleAdj);
-
-//    if (debug == true){
-//        Serial.print(millis());
-//        Serial.print(", v: ");
-//        Serial.print(targetDist);
-//        Serial.print(", ");
-//        Serial.print(distError);
-//        Serial.print(", ");
-//        Serial.print(velocity);   
-//        Serial.print(", h: ");
-//        Serial.print(targetAngle);
-//        Serial.print(", ");
-//        Serial.print(rotError);
-//        Serial.print(", ");
-//        Serial.println(angleAdj);   
-//        Serial.print(", movtor Val: (");
-//        Serial.print(leftMotorVal);
-//        Serial.print(", ");
-//        Serial.print(rightMotorVal);
-//        Serial.println(")");
-//    }
-     
    robotVars.l = leftMotorVal;
    robotVars.r = rightMotorVal;
+
    Motors::commandMotors(leftMotorVal, rightMotorVal);
    
 }
@@ -105,13 +89,11 @@ void Motors::commandMotors(double leftInput, double rightInput){
     *  and forward is 180 for the left servo. 
     */
    
-    double leftTemp = (leftInput * 90.0) + 90; // +1 is 180, -1 is 0. 
-    double rightTemp = 90 - (rightInput * 90.0); // +1 is 0, -1 is 180
+    int leftTemp = (leftInput * 90.0) + 90; // +1 is 180, -1 is 0. 
+    int rightTemp = 90 - (rightInput * 90.0); // +1 is 0, -1 is 180
 
     leftServo.write(leftTemp);
     rightServo.write(rightTemp);
-    Serial.println(leftTemp);
-    Serial.println(rightTemp);
    
 }
 

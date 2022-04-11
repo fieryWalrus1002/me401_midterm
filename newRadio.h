@@ -11,8 +11,8 @@
 //#define FREQUENCY   RF69_433MHZ
 #define FREQUENCY     RF69_915MHZ
 #define USEACK        false // Request ACKs or not
-#define NUM_ROBOTS 6
-#define NUM_BALLS 10
+#define NUM_ROBOTS 40
+#define NUM_BALLS 20
 #define RADIO_LED 6
 
 const int RF69_CHIPKIT_IRQ = 38;
@@ -31,8 +31,8 @@ struct RobotPose
 
 struct BallPosition
 {
-  int16_t x;
-  int16_t y; 
+  int16_t x = 500;
+  int16_t y = 500;
 };
 
 class Comms {
@@ -51,7 +51,8 @@ class Comms {
 
 RFM69 radio(RF69_SPI_CS, RF69_CHIPKIT_IRQ, true);
 Comms comms;
-BallPosition ballPositions[NUM_BALLS];
+
 RobotPose robotPoses[NUM_ROBOTS];
+BallPosition ballPositions[NUM_BALLS];
 
 #endif

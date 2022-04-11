@@ -253,11 +253,17 @@ void NavSystem::checkPath(NavPoint* currentNavPoint){
   Pg_r = getPnr(goalPoint, robotPoses[MY_ROBOT_ID]);
   currentNavPoint->x = goalPoint.x;
   currentNavPoint->y = goalPoint.y;
+
   
   for (int i = 0; i < numRobots; i++){
     // iterate through the robots, and find out if they're in our way and which one is the closest
     if (i != MY_ROBOT_ID && robotPoses[i].valid == true){
+
       NavPoint robotNavPoint = {robotPoses[i].x, robotPoses[i].y};
+      Serial.print("robot is: ");
+      Serial.print(robotNavPoint.x);
+      Serial.print(", ");
+      Serial.println(robotNavPoint.y);
       Po_r = getPnr(robotNavPoint, robotPoses[MY_ROBOT_ID]);
       if (Po_r.y < 75 && Po_r.y > -75 && Po_r.x > 0 && Po_r.x < Pg_r.x){
         // if this is the case, its blocking so find out how far away it is
@@ -273,17 +279,82 @@ void NavSystem::checkPath(NavPoint* currentNavPoint){
   // now we have the closest obstacle that is blocking our path
   // get its world coordinates
   Po_w = getPnw(Po_r, robotPoses[MY_ROBOT_ID]);
-  
-  // choose the offset direction to avoid the obstacle
-  if (closestObs.y >= 0){
-    // got right around it, because its on your left
-    currentNavPoint->y = Po_w.y - obsOffset;
-    currentNavPoint->x = Po_w.x;
-  }
-  if (closestObs.y < 0){
-    // go left around it, because its to your right
-    currentNavPoint->y = Po_w.y + obsOffset;
-    currentNavPoint->x = Po_w.x;
-  }
+//  
+//  // choose the offset direction to avoid the obstacle
+//  if (closestObs.y >= 0){
+//    // got right around it, because its on your left
+//    currentNavPoint->y = Po_w.y - obsOffset;
+//    currentNavPoint->x = Po_w.x;
+//  }
+//  if (closestObs.y < 0){
+//    // go left around it, because its to your right
+//    currentNavPoint->y = Po_w.y + obsOffset;
+//    currentNavPoint->x = Po_w.x;
+//  }
 
+
+
+}
+
+//NavPoint NavSystem::findNearestBall(){
+//  for (int i = 0; i < numBalls; i++){
+//    ballPositions[i];
+//  }
+//  nav.editNavPoint(&goalPoint,ballPositions[0].x,ballPositions[0].y);
+//}
+
+NavPoint NavSystem::getNavPointFromBallPos(BallPosition ballPos){
+  // turn a ballPosition into a nav point for ease of coding
+  NavPoint ballNavPoint;
+  ballNavPoint.x = ballPos.x;
+  ballNavPoint.y = ballPos.y;
+  return ballNavPoint;
+}
+
+NavPoint NavSystem::findNearestBall(){
+  // iterate through all the balls, and return the closest one as our target
+  NavPoint closestBall;
+  double closestBallDist = 3000;
+
+  if (numBalls == 0){
+    // if there are no balls, we don't need to go to a ball, so we leave the nav point unchanged
+    closestBall.x = myRobotPose.x;
+    closestBall.y = myRobotPose.y;
+    return closestBall;
+  }
+  
+  for (int i = 0; i < numBalls; i++){
+    // iterate through the balls, checking to see if they are within the arena bounds and thus valid targets
+    NavPoint ballPos = getNavPointFromBallPos(ballPositions[i]);
+    if (ballPos.x > ARENA_MIN && ballPos.x < ARENA_MAX && ballPos.y > ARENA_MIN && ballPos.y < ARENA_MAX){
+
+        // calculate distance from home base so we can check if they are our balls
+        double distFromHomeBase = sqrt(pow((ballPos.x -  home_base.x), 2) + pow((ballPos.y - home_base.y), 2));
+        
+        if (distFromHomeBase > BASE_RADIUS){         
+          NavPoint Pb_r = getPnr(ballPos, myRobotPose);
+          double ballDist = getDistanceRelRobot(Pb_r);
+          
+          if (ballDist < closestBallDist){
+            closestBallDist = ballDist;
+            closestBall.x = ballPos.x;
+            closestBall.y = ballPos.y;
+          }
+        }
+    }
+  }
+  return closestBall;
+}
+
+
+bool NavSystem::closeEnough(RobotPose robot, NavPoint point){
+  // if distance between robot and point is close enough(tm), return true
+  
+  double distFromPoint = sqrt(pow((robot.x -  point.x), 2) + pow((robot.y - point.y), 2));
+  
+  if (distFromPoint < CLOSE_ENOUGH){
+    return true;
+  } else{
+    return false;
+  }
 }
