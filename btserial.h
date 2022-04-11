@@ -53,16 +53,13 @@ states state = NONE;
 
 int current_value;
 
-
 void initBtSerial();
 void process_inc_byte(const byte);
 void handle_action();
 
-
 void initBtSerial(){
   BTSerial.begin(9600);
   BTSerial.print("hello");
-
 }
 
 void handle_action()

@@ -243,6 +243,11 @@ void NavSystem::addNavPoint(NavPoint navpoint){
 
 
 void NavSystem::checkPath(NavPoint* currentNavPoint){
+  /* Ahmed and Magnus's path checking algorithm
+   *  Checks to see if the path is blocked by looking at the obstacles between robot and goal.
+   *  If it finds an obstacle that is in the danger zone, it takes the closest one and tries to avoid it 
+   *  by the shortest path. 
+   */
   NavPoint closestObs;
   int closestDist = 1000;
   NavPoint Po_r;
@@ -283,12 +288,12 @@ void NavSystem::checkPath(NavPoint* currentNavPoint){
 //  // choose the offset direction to avoid the obstacle
 //  if (closestObs.y >= 0){
 //    // got right around it, because its on your left
-//    currentNavPoint->y = Po_w.y - obsOffset;
+//    currentNavPoint->y = Po_w.y - OBSAVOID_OFFSET;
 //    currentNavPoint->x = Po_w.x;
 //  }
 //  if (closestObs.y < 0){
 //    // go left around it, because its to your right
-//    currentNavPoint->y = Po_w.y + obsOffset;
+//    currentNavPoint->y = Po_w.y + OBSAVOID_OFFSET;
 //    currentNavPoint->x = Po_w.x;
 //  }
 

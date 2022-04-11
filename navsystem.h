@@ -70,9 +70,12 @@
 
 #define M_PI 3.14159
 #define CLOSE_ENOUGH 75
+//#define OBSAVOID_OFFSET 75 // offset to avoid obstacles in our path
+const float OBSAVOID_OFFSET = 75.0;
 const int ARENA_MIN = -250;
 const int ARENA_MAX = 2500;
 const int BASE_RADIUS = 400;
+
 
 
 class NavPoint {
@@ -123,7 +126,7 @@ NavPoint navList[10] = {{500., 500.0},
                         };
 
 NavPoint currentNavPoint = {1000.0, 1000.0};
-int obsOffset = 50;
+
 // assign goalPoint a position when have a ball as a target, or the home base when in capture
 NavPoint goalPoint = {1000.0, 1000.0};
 NavPoint home_base = {0.0, 0.0};

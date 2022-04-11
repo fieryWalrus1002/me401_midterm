@@ -91,7 +91,7 @@ struct PIDVars{
 
 class Motors {
     public:
-        void update(NavPoint navpoint, bool debug);
+        void update(NavPoint, bool);
         void commandMotors(double, double);
         double pidCalc(PIDVars*, double);
         void setHeadingKp(PIDVars*, int);
