@@ -17,8 +17,15 @@
 #include "navsystem.h"
 #include "motors.h"
 
-const int L_LIMIT_PIN = 7;
-const int R_LIMIT_PIN = 10; 
+// These aren't the pin numbers, they are the external interrupt numbers.
+// we have to look them up and find out which are available, and then what pin they are found on 
+// connect the pins to the COM on the limit switch in question
+// connect NC to ground
+// connect NO to 3.3v
+// the pins will be set as input and will trigger on FALLING, as the limit switch will disconnect V from pin, and connect pin to GND
+// ... I think
+const int L_LIMIT_EXTINT = 7; // extInt a is on pin x
+const int R_LIMIT_EXTINT = 10; // extInt b is on pin y
 
 enum robotStates {
   ATTACK, // search for balls in neutral and opposing base

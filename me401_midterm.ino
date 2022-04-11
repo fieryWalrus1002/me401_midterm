@@ -113,8 +113,8 @@ void setup() {
   attachCoreTimerService(updateCallback);
 
   // attach the external interrupts for the limit switches
-  attachInterrupt(L_LIMIT_PIN, handleCrashL, RISING);
-  attachInterrupt(R_LIMIT_PIN, handleCrashR, RISING);
+  attachInterrupt(L_LIMIT_EXTINT, handleCrashL, FALLING);
+  attachInterrupt(R_LIMIT_EXTINT, handleCrashR, FALLING);
 }
 
 void handleCrashL(){
