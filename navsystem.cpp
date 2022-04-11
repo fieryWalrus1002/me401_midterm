@@ -110,26 +110,13 @@ NavPoint testCourse[] = {
                         };
 
 void NavSystem::setHomeBase(RobotPose myStartPose){
-  // automatically set your home base coordinates according to what quadrant your robot starts up in
-  
+  // automatically set your home base coordinates according to where your robot starts
+  // Home base locations are either 0,0 or 2000, 2000
     if (myStartPose.x < 1100.0){
-        if (myStartPose.y > 1100.0){
-            // home base is in upper left quadrant
-            editNavPoint(&home_base,250.0, 1850.0);
-        } else {
-            // home base is in lower left quadrant
-            editNavPoint(&home_base,250.0, 250.0);
-        }       
+        editNavPoint(&home_base,2000.0, 2000.0);
     } else {
-        if (myStartPose.y > 1000.0){
-            // home base is in upper right quadrant
-            editNavPoint(&home_base,1850.0, 1850.0);
-        } else {
-            // home base is in lower right quadrant
-            editNavPoint(&home_base,1850.0, 250.0);
-        }
+        editNavPoint(&home_base, 0.0, 0.0);
     }
-
 } //setHomeBase();
 
 NavPoint NavSystem::getPnw(NavPoint navpoint, RobotPose robot){
