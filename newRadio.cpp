@@ -66,12 +66,8 @@ void Comms::updateRobotPoseAndBallPositions (void)
    *  (2) read packets until a * is found
    *  (3) copy the data into the current double-buffer memory locations 
    *  (4) iterate through the buffer and pick off the position and rotation data. It is an integer for each field.
-   * 
-   * 
-   * 
-   * 
    */
-  char lbuf[1024];
+
   bool msg_start_found = false;
   bool msg_end_found = false;
   int idx = 0;
@@ -82,11 +78,12 @@ void Comms::updateRobotPoseAndBallPositions (void)
     counter += 1;
     if (counter > 1000 && idx == 0){
       //failure to find radio message
-      Serial.println("breaking radio");
       return;
     }
     if (radio.receiveDone()) // Got one!
     {
+      printRFMMessage(radio.DATALEN, (uint8_t*)radio.DATA);
+      
       // If the start of a message hasn't been found, look for the '$'
       if (!msg_start_found)
       {
@@ -174,7 +171,7 @@ void Comms::updateRobotPoseAndBallPositions (void)
 
     ballPositions[i].x = X;
     ballPositions[i].y = Y;
-    ballPositions[i].hue = H;
+//    ballPositions[i].hue = H;
   }
  
 }

@@ -10,13 +10,12 @@
 #define EXTINT 7 // interrupt 1 is on digital pin 2
 
 void attack(){
-//  Serial.println("ATTACK");
-//  BallPosition closestballPos = ballPositions[0];
   nav.editNavPoint(&currentNavPoint,ballPositions[0].x,ballPositions[0].y);
 }
 
 void defend(){
 //  Serial.println("DEFEND"); 
+  goalPoint = home_base;
 }
 
 void capture(){  
@@ -63,6 +62,11 @@ void handleState(){
 
 void changeState(){
 //  Serial.println("changeState");
+    if (robotState == ATTACK){
+      if (numBalls == 0){
+        robotState = DEFEND;
+      }
+    }
 }
 
 
@@ -87,6 +91,8 @@ void setup() {
   attachCoreTimerService(btDebugCallback);
   motors.leftServo.attach(leftServoPin);
   motors.rightServo.attach(rightServoPin);
+
+  nav.setHomeBase(robotPoses[MY_ROBOT_ID]);
   // Initialize the PID and IR interrupts
   // TODO: Change the kp, ki, kd in the ME491_PID_IR.h file to match your new tunings
   //       that you did after installing the sensor on your robot

@@ -102,8 +102,6 @@ void NavSystem::editNavPoint(NavPoint *nextPoint, float x, float y){
 }
 
 
-NavPoint home_base;
-
 NavPoint testCourse[] = {
                           {250.0, 250.0}, 
                           {1750.0, 250.0}, 
@@ -134,6 +132,29 @@ void NavSystem::setHomeBase(RobotPose myStartPose){
 
 } //setHomeBase();
 
+NavPoint NavSystem::getPnw(NavPoint navpoint, RobotPose robot){
+  // get the position of a nav point wrt the global frame, from a P wrt robot frame
+  
+      double theta = (float)robot.theta / 1000.0; // convert from the int16_t format to double
+      double c = cos(theta);
+      double s = sin(theta);
+      
+      // rotation matrix
+      double x1 = c * navpoint.x + -s * navpoint.y;
+      double y1 = s * navpoint.x + c * navpoint.y;
+
+      // translation matrix
+      double x1t = c * robot.x + -s * robot.y;
+      double y1t = s * robot.x + c * robot.y;
+
+      // define new NavPoint
+      double px = x1 + x1t;
+      double py = y1 + y1t;
+      NavPoint pnw = {px, py};
+      
+      return pnw;
+  
+}
 
 NavPoint NavSystem::getPnr(NavPoint navpoint, RobotPose robot){
     /* get position of NavPoint wrt robot frame
@@ -176,9 +197,6 @@ double NavSystem::getDistanceRelRobot(NavPoint pn_r){
    return distance;
 }
 
-NavPoint getNearestGlobalObstacle(){
-  
-}
 
 double NavSystem::convDegRads(float degree){
   double radian = degree * (M_PI / 180.0);
@@ -221,4 +239,51 @@ void NavSystem::getNextNavPoint(NavPoint *oldNavPoint){
   }
   
 void NavSystem::addNavPoint(NavPoint navpoint){
+}
+
+
+void NavSystem::checkPath(NavPoint* currentNavPoint){
+  NavPoint closestObs;
+  int closestDist = 1000;
+  NavPoint Po_r;
+  NavPoint Po_w;
+  NavPoint Pg_r;
+  
+  // assume you aren't blocked. If you're not blocked, you should be going toward your goal.
+  Pg_r = getPnr(goalPoint, robotPoses[MY_ROBOT_ID]);
+  currentNavPoint->x = goalPoint.x;
+  currentNavPoint->y = goalPoint.y;
+  
+  for (int i = 0; i < numRobots; i++){
+    // iterate through the robots, and find out if they're in our way and which one is the closest
+    if (i != MY_ROBOT_ID && robotPoses[i].valid == true){
+      NavPoint robotNavPoint = {robotPoses[i].x, robotPoses[i].y};
+      Po_r = getPnr(robotNavPoint, robotPoses[MY_ROBOT_ID]);
+      if (Po_r.y < 75 && Po_r.y > -75 && Po_r.x > 0 && Po_r.x < Pg_r.x){
+        // if this is the case, its blocking so find out how far away it is
+        int obsDist = getDistanceRelRobot(Po_r);
+        if  (obsDist < closestDist){
+           closestObs.x = Po_r.x;
+           closestObs.y = Po_r.y;
+           closestDist = obsDist; // this is the newest closest obstacle
+        }
+      }
+    }
+  }
+  // now we have the closest obstacle that is blocking our path
+  // get its world coordinates
+  Po_w = getPnw(Po_r, robotPoses[MY_ROBOT_ID]);
+  
+  // choose the offset direction to avoid the obstacle
+  if (closestObs.y >= 0){
+    // got right around it, because its on your left
+    currentNavPoint->y = Po_w.y - obsOffset;
+    currentNavPoint->x = Po_w.x;
+  }
+  if (closestObs.y < 0){
+    // go left around it, because its to your right
+    currentNavPoint->y = Po_w.y + obsOffset;
+    currentNavPoint->x = Po_w.x;
+  }
+
 }

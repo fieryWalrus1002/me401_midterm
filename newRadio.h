@@ -11,12 +11,15 @@
 //#define FREQUENCY   RF69_433MHZ
 #define FREQUENCY     RF69_915MHZ
 #define USEACK        false // Request ACKs or not
-#define NUM_ROBOTS 5
-#define NUM_BALLS 12
+#define NUM_ROBOTS 6
+#define NUM_BALLS 10
 #define RADIO_LED 6
 
 const int RF69_CHIPKIT_IRQ = 38;
-
+char lbuf[1024];
+int numRobots = 0;
+int numBalls = 0;
+  
 struct RobotPose
 {
   boolean valid;
@@ -30,21 +33,10 @@ struct BallPosition
 {
   int16_t x;
   int16_t y; 
-  int16_t hue; 
 };
-
-
-
-
-
 
 class Comms {
   public:
-    int numRobots = 0;
-    
-    int numBalls = 0;
-    
-    
     int getNumRobots();
     void updateRobotPoseAndBallPositions();
     RobotPose getRobotPose (int robotID);
@@ -53,11 +45,8 @@ class Comms {
     
   private:
     void setupRadio();
-    
     void PrintHex8(uint8_t *data, uint8_t length);
-    void printRFMMessage(int len, uint8_t* buff);
-        
-
+    void printRFMMessage(int len, uint8_t* buff);     
 };
 
 RFM69 radio(RF69_SPI_CS, RF69_CHIPKIT_IRQ, true);

@@ -91,6 +91,8 @@ class NavSystem
     void goToPoint(int, NavPoint*);
     void getNextNavPoint(NavPoint*); //pass currentNavPoint to getNext and it will assign the new coordinates
     void addNavPoint(NavPoint);
+    NavPoint getPnw(NavPoint navpoint, RobotPose robot);
+    void checkPath(NavPoint* currentNavPoint);
 
   private:
     int currNav = 0;
@@ -113,6 +115,10 @@ NavPoint navList[10] = {{500., 500.0},
                         };
 
 NavPoint currentNavPoint = {1000.0, 1000.0};
+int obsOffset = 50;
+// assign goalPoint a position when have a ball as a target, or the home base when in capture
+NavPoint goalPoint = {1000.0, 1000.0};
+NavPoint home_base = {0.0, 0.0};
 
 NavSystem nav;
 
