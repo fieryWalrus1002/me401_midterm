@@ -108,7 +108,6 @@ void setup() {
   Serial.print("Serial output every 2s on ");
   attachCoreTimerService(btDebugCallback);
   
-
   // update the goal position every 500 ms
   attachCoreTimerService(updateCallback);
 
@@ -143,6 +142,7 @@ void loop() {
 
    if (CRASH_FLAG == true){
       CRASH_FLAG = crashState(CRASH_SIDE);
+      Serial.println("crashed");
    } 
    else {
       // check to see if we have a clear path to our goal point
@@ -156,10 +156,7 @@ void loop() {
     
       // use navpoint and robot pose to calculate PID changes needed and modify motor output
       motors.update(pn_r, areWeThereYet); 
-   }
-
-
-  
+   } //end else
 } // end loop()
 
 uint32_t btDebugCallback(uint32_t currentTime) {
@@ -187,6 +184,7 @@ uint32_t updateCallback(uint32_t currentTime) {
     // find nearest ball
     NavPoint nearestBall = nav.findNearestBall();
     goalPoint = nav.findNearestBall();
+    
   }
   return (currentTime + CORE_TICK_RATE * 500);
 }
@@ -198,6 +196,8 @@ bool crashState(bool crashSide){
    * Once activated the robot is to back out and scan the area searching for a new safe path.
    */
    int howLongToBackUp = 500; // ms that we back up to clear obstacle. How long should it be?
+   int r_motor_val;
+   int l_motor_val;
    
   if (crashSide == 0){
     // that means we collided on the left. how do we use that info?

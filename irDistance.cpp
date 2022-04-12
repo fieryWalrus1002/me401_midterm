@@ -10,16 +10,16 @@ double IrSensor::scanAreaForGap(){
   //Scan the area around the obstacle to search for routes around it if any
   //Seek ‘empty’ direction, if two open paths go right
   // so the scanAreaForGap should return a double, corresponding to an angle from the robot that looks more open
-  minAngle = -90; // I'm making these up, I haven't used the servo yet
-  maxAngle = 90;
+  int minAngle = -90; // I'm making these up, I haven't used the servo yet
+  int maxAngle = 90;
   double bestAngle = 0; // holds the best angle corresponding to the highest distance
   int highestDistance = 0; // the best really sucks to begin with so anything it finds is okay
   int stupidCloseWeAreStillBlocked = 400; // how far away is stupid close? Change it to something sensible
   
-  for (int angle = minAngle; int angle < maxAngle; angle++){
+  for (int i = minAngle; i < maxAngle; i++){
     // this code sucks because its going to iterate through ALL the angles from -90 to 90. Maybe a set number of angles to check?
-    // or have the angle be an i value multiplied by something? i don't know
-   
+    // or have the angle be an i value multiplied by something? i don't know here is i * 30.
+    int angle = i * 30;
     int obsDist = getDistance(angle); // get the distance at this angle
     
     if (obsDist < highestDistance){

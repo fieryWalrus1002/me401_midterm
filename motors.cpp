@@ -89,8 +89,8 @@ void Motors::commandMotors(double leftInput, double rightInput){
     *  and forward is 180 for the left servo. 
     */
    
-    int leftTemp = (leftInput * 90.0) + 90; // +1 is 180, -1 is 0. 
-    int rightTemp = 90 - (rightInput * 90.0); // +1 is 0, -1 is 180
+    double leftTemp = (leftInput * 90.0) + 90; // +1 is 180, -1 is 0. 
+    double rightTemp = 90 - (rightInput * 90.0); // +1 is 0, -1 is 180
 
     leftServo.write(leftTemp);
     rightServo.write(rightTemp);

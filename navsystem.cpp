@@ -133,27 +133,21 @@ void NavSystem::setHomeBase(RobotPose myStartPose){
 } //setHomeBase();
 
 NavPoint NavSystem::getPnw(NavPoint navpoint, RobotPose robot){
-  // get the position of a nav point wrt the global frame, from a P wrt robot frame
-  
       double theta = (float)robot.theta / 1000.0; // convert from the int16_t format to double
       double c = cos(theta);
       double s = sin(theta);
       
       // rotation matrix
-      double x1 = c * navpoint.x + -s * navpoint.y;
-      double y1 = s * navpoint.x + c * navpoint.y;
-
-      // translation matrix
-      double x1t = c * robot.x + -s * robot.y;
-      double y1t = s * robot.x + c * robot.y;
+      //      R = np.matrix([[c, s], [-s, c]])
+      double x1 = c * navpoint.x + s * navpoint.y;
+      double y1 = -s * navpoint.x + c * navpoint.y;
 
       // define new NavPoint
-      double px = x1 + x1t;
-      double py = y1 + y1t;
+      double px = x1 + robot.x;
+      double py = y1 + robot.y;
       NavPoint pnw = {px, py};
       
       return pnw;
-  
 }
 
 NavPoint NavSystem::getPnr(NavPoint navpoint, RobotPose robot){
@@ -249,7 +243,7 @@ void NavSystem::checkPath(NavPoint* currentNavPoint){
    *  by the shortest path. 
    */
   NavPoint closestObs;
-  int closestDist = 1000;
+  int closestDist = 3000;
   NavPoint Po_r;
   NavPoint Po_w;
   NavPoint Pg_r;
@@ -258,19 +252,24 @@ void NavSystem::checkPath(NavPoint* currentNavPoint){
   Pg_r = getPnr(goalPoint, robotPoses[MY_ROBOT_ID]);
   currentNavPoint->x = goalPoint.x;
   currentNavPoint->y = goalPoint.y;
-
+  RobotPose robot =   {false, 0, 0, 0, 0}; // valid, ID, x, y, theta
   
   for (int i = 0; i < numRobots; i++){
-    // iterate through the robots, and find out if they're in our way and which one is the closest
-    if (i != MY_ROBOT_ID && robotPoses[i].valid == true){
 
-      NavPoint robotNavPoint = {robotPoses[i].x, robotPoses[i].y};
-      Serial.print("robot is: ");
+    // iterate through the robots, and find out if they're in our way and which one is the closest
+    robot = robotPoses[i];
+
+    if (robot.valid == true){ // doesn't check to see if its our robot, but the x position of our robot should be ~0 so it will be ignored below
+      NavPoint robotNavPoint = {robot.x, robot.y};
+      Serial.print("robot id: "):
+      Serial.print(robot.ID);
+      Serial.print(": (");
       Serial.print(robotNavPoint.x);
       Serial.print(", ");
-      Serial.println(robotNavPoint.y);
+      Serial.print(robotNavPoint.y);
+      Serial.println(")");
       Po_r = getPnr(robotNavPoint, robotPoses[MY_ROBOT_ID]);
-      if (Po_r.y < 75 && Po_r.y > -75 && Po_r.x > 0 && Po_r.x < Pg_r.x){
+      if (Po_r.y > -ROBOBUMPER && Po_r.y < ROBOBUMPER && Po_r.x > 100 && Po_r.x < WORRYDISTANCE){
         // if this is the case, its blocking so find out how far away it is
         int obsDist = getDistanceRelRobot(Po_r);
         if  (obsDist < closestDist){
@@ -281,24 +280,25 @@ void NavSystem::checkPath(NavPoint* currentNavPoint){
       }
     }
   }
-  // now we have the closest obstacle that is blocking our path
-  // get its world coordinates
-  Po_w = getPnw(Po_r, robotPoses[MY_ROBOT_ID]);
-//  
-//  // choose the offset direction to avoid the obstacle
-//  if (closestObs.y >= 0){
-//    // got right around it, because its on your left
-//    currentNavPoint->y = Po_w.y - OBSAVOID_OFFSET;
-//    currentNavPoint->x = Po_w.x;
-//  }
-//  if (closestObs.y < 0){
-//    // go left around it, because its to your right
-//    currentNavPoint->y = Po_w.y + OBSAVOID_OFFSET;
-//    currentNavPoint->x = Po_w.x;
-//  }
 
-
-
+  
+  // choose the offset direction to avoid the obstacle
+  if (closestObs.y >= 0){
+    // got right around it, because its on your left
+    Po_r.y = Po_r.y - OBSAVOID_OFFSET;
+  }
+  if (closestObs.y < 0){
+    // go left around it, because its to your right
+    Po_r.y = Po_r.y + OBSAVOID_OFFSET;
+  }
+    // we have the offset added in, now get world coordinates
+    Po_w = getPnw(Po_r, robotPoses[MY_ROBOT_ID]);
+    currentNavPoint->y = Po_w.y;
+    currentNavPoint->x = Po_w.x;
+    Serial.print("Po_w: ");
+    Serial.print(Po_w.x);
+    Serial.print(", ");
+    Serial.println(Po_w.y);
 }
 
 //NavPoint NavSystem::findNearestBall(){

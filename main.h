@@ -51,7 +51,7 @@ volatile int CRASH_SIDE = 0; // 0 is left, 1 is right
 
 bool RADIO = true;
 bool serialDebug = true; // if true, will output serial debug info
-bool btDebug = true; // if false, it will print to serial instead when performing serialDebug
+bool btDebug = false; // if false, it will print to serial instead when performing serialDebug
 
 
 
