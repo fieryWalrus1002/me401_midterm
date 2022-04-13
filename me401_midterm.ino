@@ -102,18 +102,20 @@ void setup() {
   // Initialize the PID and IR interrupts
   // TODO: Change the kp, ki, kd in the ME491_PID_IR.h file to match your new tunings
   //       that you did after installing the sensor on your robot
-  //  setupPIDandIR();
+  setupPIDandIR();
   
   // serial output every 2s
-  Serial.print("Serial output every 2s on ");
+  Serial.println("Serial output every 2s on ");
   attachCoreTimerService(btDebugCallback);
   
   // update the goal position every 500 ms
   attachCoreTimerService(updateCallback);
+  Serial.println("coreTimer attached");
 
   // attach the external interrupts for the limit switches
   attachInterrupt(L_LIMIT_EXTINT, handleCrashL, FALLING);
   attachInterrupt(R_LIMIT_EXTINT, handleCrashR, FALLING);
+  Serial.println("limit switches activated");
 }
 
 void handleCrashL(){
@@ -128,21 +130,23 @@ void handleCrashR(){
 
 void loop() {
   // check the BTSerial for instructions
-  while (BTSerial.available())
-  {
-      process_inc_byte(BTSerial.read());
-  }
- 
+//  
+//  while (BTSerial.available())
+//  {
+//      process_inc_byte(BTSerial.read());
+//  }
+
+  
   // update the environment and change states as required
    if (RADIO == true){
       checkStatus(); // check the status of the game environment
       changeState(); // check to see if a state change is called for
       handleState(); // execute current state function
    }
+   
 
-   if (CRASH_FLAG == true){
+   if (CRASH_FLAG == true){      
       CRASH_FLAG = crashState(CRASH_SIDE);
-      Serial.println("crashed");
    } 
    else {
       // check to see if we have a clear path to our goal point
@@ -157,6 +161,7 @@ void loop() {
       // use navpoint and robot pose to calculate PID changes needed and modify motor output
       motors.update(pn_r, areWeThereYet); 
    } //end else
+   
 } // end loop()
 
 uint32_t btDebugCallback(uint32_t currentTime) {
@@ -173,7 +178,8 @@ uint32_t btDebugCallback(uint32_t currentTime) {
                           (String)motors.angleAdj + ";";
       if (btDebug == true){
         BTSerial.println(outputBuf);
-      } else {
+      } 
+      if (serialDebug == true){
         Serial.println(outputBuf);
       }
   return (currentTime + CORE_TICK_RATE * 2000);
@@ -198,18 +204,18 @@ bool crashState(bool crashSide){
    int howLongToBackUp = 500; // ms that we back up to clear obstacle. How long should it be?
    int r_motor_val;
    int l_motor_val;
-   
+   Serial.println("crash state");
   if (crashSide == 0){
     // that means we collided on the left. how do we use that info?
     // Should we back up a slightly different direction?
-    l_motor_val = 1;
+    l_motor_val = -1;
     r_motor_val = 1;
   } else {
     // if crashSide is 1, that means we collided on the right. how do we use that info?
     r_motor_val = 1;
-    l_motor_val = 1;
+    l_motor_val = -1;
   }
-
+  Serial.println(r_motor_val);
   //The robot should back out of the obstacle area
   motors.commandMotors(l_motor_val, r_motor_val); // back up according to values from the crashSide check
   delay(howLongToBackUp); // wait for a few ms to get far enough back
@@ -219,15 +225,16 @@ bool crashState(bool crashSide){
   //Seek ‘empty’ direction, if two open paths go right
   // so the scanAreaForGap should return a double, corresponding to an angle from the robot that looks more open
   // the code for this function is in irDistance.cpp
-  double emptyDir = irSensor.scanAreaForGap();
-  
+//  double emptyDir = irSensor.scanAreaForGap();
+//  Serial.print("irSensor:");
+//  Serial.println(emptyDir);
   //If all directions are blocked back out further
-  if (emptyDir == -180){
-    // scanAreaForGap returns -180 if there are no distances greater than a threshold
-    // This means we're still blocked, so we should back up and try again. We do that by leaving the
-    // crashed flag true so this function will be called again
-    return true;
-  }
+//  if (emptyDir == -180){
+//    // scanAreaForGap returns -180 if there are no distances greater than a threshold
+//    // This means we're still blocked, so we should back up and try again. We do that by leaving the
+//    // crashed flag true so this function will be called again
+//    return true;
+//  }
 
   // now that we have a proper open angle, how should we proceed? Do we pick a navpoint in that direction? or just use 
   // commandMotors to turn that far, and how do we know how far we turned?

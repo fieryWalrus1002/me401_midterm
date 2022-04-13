@@ -61,7 +61,7 @@ void Motors::update(NavPoint navpoint, bool reachedPoint){
 
   float targetDist = nav.getDistanceRelRobot(navpoint);
   float targetAngle = nav.getHeadingRelRobot(navpoint);
-
+  
   robotVars.tD = targetDist;
   robotVars.tA = targetAngle;
   

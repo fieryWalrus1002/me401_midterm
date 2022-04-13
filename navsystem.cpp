@@ -248,7 +248,7 @@ void NavSystem::checkPath(NavPoint* currentNavPoint){
 
     if (robot.valid == true){ // doesn't check to see if its our robot, but the x position of our robot should be ~0 so it will be ignored below
       NavPoint robotNavPoint = {robot.x, robot.y};
-      Serial.print("robot id: "):
+      Serial.print("robot id: ");
       Serial.print(robot.ID);
       Serial.print(": (");
       Serial.print(robotNavPoint.x);
