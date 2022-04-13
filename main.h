@@ -20,12 +20,12 @@
 // These aren't the pin numbers, they are the external interrupt numbers.
 // we have to look them up and find out which are available, and then what pin they are found on 
 // connect the pins to the COM on the limit switch in question
-// connect NC to ground
+// connect NO to ground
 // connect NO to 3.3v
 // the pins will be set as input and will trigger on FALLING, as the limit switch will disconnect V from pin, and connect pin to GND
 // ... I think
-const int L_LIMIT_EXTINT = 7; // extInt a is on pin x
-const int R_LIMIT_EXTINT = 10; // extInt b is on pin y
+const int L_LIMIT_EXTINT = 4; // extInt 4 is on pin 35
+const int R_LIMIT_EXTINT = 2; // extInt 2 is on pin 7
 
 enum robotStates {
   ATTACK, // search for balls in neutral and opposing base
@@ -35,12 +35,7 @@ enum robotStates {
 };
 enum robotStates robotState = ATTACK;
 
-SoftwareSerial BTSerial(34, 35);
-
-//void attack();
-//void defend();
-//void capture();
-
+SoftwareSerial BTSerial(32, 33);
 
 robotStates prevState;
 RobotPose myRobotPose = {true, MY_ROBOT_ID, 500, 500, 0};
@@ -50,7 +45,7 @@ volatile bool CRASH_FLAG = false;
 volatile int CRASH_SIDE = 0; // 0 is left, 1 is right
 
 bool RADIO = true;
-bool serialDebug = true; // if true, will output serial debug info
+bool serialDebug = false; // if true, will output serial debug info
 bool btDebug = false; // if false, it will print to serial instead when performing serialDebug
 
 
