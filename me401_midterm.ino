@@ -8,6 +8,17 @@
 
 
 void attack(){
+ 
+    goalPoint = nav.findNearestBall();
+    NavPoint pnr = nav.getPnr(goalPoint , myRobotPose);
+   if(pnr.x < 150){
+    GATE_STATE = true;
+   }
+   else{
+    GATE_STATE = false;
+   
+   }
+    
   // 
 }
 
@@ -152,6 +163,7 @@ void loop() {
       handleState(); // execute current state function
    }
    
+
    if (CRASH_FLAG == true){      
       CRASH_FLAG = crashState(CRASH_SIDE);
    } 
@@ -209,23 +221,23 @@ bool crashState(bool crashSide){
    * If an obstacle occurs via the crash state, the IR sensor is then activated. 
    * Once activated the robot is to back out and scan the area searching for a new safe path.
    */
-   int howLongToBackUp = 1500; // ms that we back up to clear obstacle. How long should it be?
+   int howLongToBackUp = 500; // ms that we back up to clear obstacle. How long should it be?
    int r_motor_val;
    int l_motor_val;
    Serial.print("crash state, side: ");
    Serial.println(crashSide);
-//  if (crashSide == 0){
-//    // that means we collided on the left. how do we use that info?
-//    // Should we back up a slightly different direction?
-//    l_motor_val = -1;
-//    r_motor_val = 1;
-//  } else {
-//    // if crashSide is 1, that means we collided on the right. how do we use that info?
-//    r_motor_val = 1;
-//    l_motor_val = 1;
-//  }
+  if (crashSide == 0){
+    // that means we collided on the left. how do we use that info?
+    // Should we back up a slightly different direction?
+    l_motor_val = -1;
+    r_motor_val = 1;
+  } else {
+    // if crashSide is 1, that means we collided on the right. how do we use that info?
+    r_motor_val = 1;
+    l_motor_val = -1;
+  }
   //The robot should back out of the obstacle area
-  motors.commandMotors(1, 1); // back up according to values from the crashSide check
+  motors.commandMotors(l_motor_val, r_motor_val); // back up according to values from the crashSide check
   delay(howLongToBackUp); // wait for a few ms to get far enough back
   motors.commandMotors(0, 0); // stop motors for scanning
  

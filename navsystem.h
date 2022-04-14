@@ -128,10 +128,10 @@ NavPoint navList[10] = {{500., 500.0},
                         {500., 500.0}
                         };
 
-NavPoint currentNavPoint = {1000.0, 1000.0};
+NavPoint currentNavPoint = {500.0, 500.0};
 
 // assign goalPoint a position when have a ball as a target, or the home base when in capture
-NavPoint goalPoint = {1000.0, 1000.0};
+NavPoint goalPoint = {1000, 1000};
 NavPoint home_base = {0.0, 0.0};
 
 NavSystem nav;

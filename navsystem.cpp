@@ -61,8 +61,11 @@
     *       control purposes. 
     */
 
+
+
 #include "navsystem.h"
 #include <Arduino.h>
+
 #include "btserial.h"
 
 NavPoint::NavPoint(float x1, float y1){
@@ -298,13 +301,13 @@ void NavSystem::checkPath(NavPoint* currentNavPoint){
     Po_w = getPnw(Po_r, robotPoses[MY_ROBOT_ID]);
     currentNavPoint->y = Po_w.y;
     currentNavPoint->x = Po_w.x;
-    Serial.print("closest obs is: ");
-    Serial.print(closestID);
-    Serial.print(", Po_w: ");
-    Serial.print(Po_w.x);
-    Serial.print(", ");
-    Serial.print(Po_w.y);
-    Serial.println(")");
+//    Serial.print("closest obs is: ");
+//    Serial.print(closestID);
+//    Serial.print(", Po_w: ");
+//    Serial.print(Po_w.x);
+//    Serial.print(", ");
+//    Serial.print(Po_w.y);
+//    Serial.println(")");
 }
 
 //NavPoint NavSystem::findNearestBall(){
