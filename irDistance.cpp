@@ -34,7 +34,7 @@ uint32_t irCallback(uint32_t currentTime) {
   }
   irCounter++;
   
-  return (currentTime + CORE_TICK_RATE);
+  return (currentTime + CORE_TICK_RATE/100);
 }
 
 void IrSensor::init(){
