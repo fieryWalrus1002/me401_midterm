@@ -89,6 +89,8 @@ struct PIDVars{
   double minLimit;
 };
 
+void openGate(bool);
+
 class Motors {
     public:
         void update(NavPoint, bool);
@@ -116,6 +118,6 @@ class Motors {
 };
 
 Motors motors;
-
+Servo gateServo; 
 
 #endif

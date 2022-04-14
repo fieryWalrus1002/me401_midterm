@@ -123,3 +123,11 @@ void Motors::setVelocityKp(PIDVars *vars, int newkp){
   double val = newkp / 100;
   vars->Kp = val;
 }
+
+void openGate(bool gateStatus){
+  if (gateStatus == true){
+    gateServo.write(GATE_OPEN_ANGLE);
+  } else {
+    gateServo.write(GATE_CLOSED_ANGLE);
+  }
+}

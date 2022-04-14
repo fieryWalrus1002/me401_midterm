@@ -17,7 +17,13 @@ void defend(){
 }
 
 void capture(){  
-//  currentNavPoint = home_base;
+  currentNavPoint = home_base;
+  bool baseReached = nav.closeEnough(myRobotPose, currentNavPoint);
+  if (baseReached == true){
+    nav.depositTheCash(); //
+    robotState = ATTACK;
+  }
+  
 }
 
 void checkStatus(){
@@ -90,7 +96,8 @@ void setup() {
   // attach motor servo pins so they actually work when we command them
   motors.leftServo.attach(leftServoPin);
   motors.rightServo.attach(rightServoPin);
-
+  gateServo.attach(GATE_SERVO_PIN);
+  
   // set the home base coordinates to the corner of the arena we start in
   nav.setHomeBase(robotPoses[MY_ROBOT_ID]);
   Serial.print(", home_base set to (");
@@ -182,6 +189,12 @@ uint32_t btDebugCallback(uint32_t currentTime) {
       if (serialDebug == true){
         Serial.println(outputBuf);
       }
+      if (GATE_STATE == false){
+        GATE_STATE = true;
+      } else {
+        GATE_STATE = false;
+      }
+      openGate(GATE_STATE);
   return (currentTime + CORE_TICK_RATE * 2000);
 }
 
@@ -204,7 +217,8 @@ bool crashState(bool crashSide){
    int howLongToBackUp = 500; // ms that we back up to clear obstacle. How long should it be?
    int r_motor_val;
    int l_motor_val;
-   Serial.println("crash state");
+   Serial.print("crash state, side: ");
+   Serial.println(crashSide);
   if (crashSide == 0){
     // that means we collided on the left. how do we use that info?
     // Should we back up a slightly different direction?
@@ -215,7 +229,6 @@ bool crashState(bool crashSide){
     r_motor_val = 1;
     l_motor_val = -1;
   }
-  Serial.println(r_motor_val);
   //The robot should back out of the obstacle area
   motors.commandMotors(l_motor_val, r_motor_val); // back up according to values from the crashSide check
   delay(howLongToBackUp); // wait for a few ms to get far enough back
@@ -225,21 +238,22 @@ bool crashState(bool crashSide){
   //Seek ‘empty’ direction, if two open paths go right
   // so the scanAreaForGap should return a double, corresponding to an angle from the robot that looks more open
   // the code for this function is in irDistance.cpp
-//  double emptyDir = irSensor.scanAreaForGap();
+//  double emptyDir = -180;
+//  emptyDir = irSensor.scanAreaForGap();
 //  Serial.print("irSensor:");
 //  Serial.println(emptyDir);
-  //If all directions are blocked back out further
+//  //If all directions are blocked back out further
 //  if (emptyDir == -180){
 //    // scanAreaForGap returns -180 if there are no distances greater than a threshold
 //    // This means we're still blocked, so we should back up and try again. We do that by leaving the
 //    // crashed flag true so this function will be called again
 //    return true;
 //  }
-
-  // now that we have a proper open angle, how should we proceed? Do we pick a navpoint in that direction? or just use 
-  // commandMotors to turn that far, and how do we know how far we turned?
-  // I'm not sure yet how we do this. 
-  
-  // return false to clear CRASH_FLAG so we continue normal movement
+//
+//  // now that we have a proper open angle, how should we proceed? Do we pick a navpoint in that direction? or just use 
+//  // commandMotors to turn that far, and how do we know how far we turned?
+//  // I'm not sure yet how we do this. 
+//  
+//  // return false to clear CRASH_FLAG so we continue normal movement
   return false;
 }

@@ -106,6 +106,7 @@ class NavSystem
     void addNavPoint(NavPoint);
     NavPoint getPnw(NavPoint navpoint, RobotPose robot);
     void checkPath(NavPoint* currentNavPoint);
+    void depositTheCash();
 
   private:
     int currNav = 0;
@@ -134,5 +135,6 @@ NavPoint goalPoint = {1000.0, 1000.0};
 NavPoint home_base = {0.0, 0.0};
 
 NavSystem nav;
+
 
 #endif /* _NAVSYSTEM_H_ */

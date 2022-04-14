@@ -29,13 +29,13 @@
 #include <Servo.h>
 
 #define IR_OUT A9
-#define SERVO_PIN 30
+//#define SERVO_PIN 30
 #define RADIANS 1 // if 1, angle measures will be returned in radian headings (+-)
 #define SERVOLIMIT 60 // max angle of the servo sweep
 #define SERVO_INCREMENT 10 // number of increments to divide the servo into for IR distance measurements
 #define SAMPLE_NUM 3 // how many IR measurements to average over
 
-Servo servo;
+//Servo servo;
 
 class IrSensor {
   public:

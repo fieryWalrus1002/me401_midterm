@@ -373,3 +373,22 @@ bool NavSystem::closeEnough(RobotPose robot, NavPoint point){
     return false;
   }
 }
+
+void NavSystem::depositTheCash(){
+  /* We're in capture mode, and we reached home base. Now open the gate, shake that booty and back up to deposit the balls.
+   */
+   // open gate
+  openGate(true);
+
+  motors.commandMotors(1, -1); // shake left
+  delay(250);
+  motors.commandMotors(-1, 1); //shake right
+  delay(250);
+  motors.commandMotors(1, -1); //shake left again
+  delay(125);
+  motors.commandMotors(1, 1); // back up 
+  delay(1500);
+
+  // close the gate
+  openGate(false);
+}

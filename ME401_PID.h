@@ -7,6 +7,8 @@ const int EncoderAPin = 2;
 const int EncoderBPin = 20;
 const int MotorDirectionPin = 4;
 const int MotorPWMPin = 3;
+//3   46  Enable1: OC1/RD0  
+//4   59  Direction1: RF1 
 
 // PID tuning gains
 float ku = 9.0; // ultimate gain

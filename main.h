@@ -26,6 +26,10 @@
 // ... I think
 const int L_LIMIT_EXTINT = 4; // extInt 4 is on pin 35
 const int R_LIMIT_EXTINT = 2; // extInt 2 is on pin 7
+const int GATE_SERVO_PIN = 30; // Servo1: PMD4/RE4   J16 
+const int GATE_OPEN_ANGLE = 90;
+const int GATE_CLOSED_ANGLE = 45;
+volatile bool GATE_STATE = false;
 
 enum robotStates {
   ATTACK, // search for balls in neutral and opposing base
@@ -47,7 +51,6 @@ volatile int CRASH_SIDE = 0; // 0 is left, 1 is right
 bool RADIO = true;
 bool serialDebug = false; // if true, will output serial debug info
 bool btDebug = false; // if false, it will print to serial instead when performing serialDebug
-
 
 
 

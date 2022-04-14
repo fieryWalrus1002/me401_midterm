@@ -1,7 +1,7 @@
 #include "irDistance.h"
 
 void IrSensor::init(){
-  servo.attach(SERVO_PIN);
+
   pinMode(IR_OUT, INPUT);
 }
 
@@ -20,9 +20,13 @@ double IrSensor::scanAreaForGap(){
     // this code sucks because its going to iterate through ALL the angles from -90 to 90. Maybe a set number of angles to check?
     // or have the angle be an i value multiplied by something? i don't know here is i * 30.
     int angle = i * 30;
+    Serial.print("irSensorAngle: ");
+    Serial.print(angle);
+    Serial.print(", distance to obstacle: ");
     int obsDist = getDistance(angle); // get the distance at this angle
+    Serial.println(obsDist);
     
-    if (obsDist < highestDistance){
+    if (obsDist > highestDistance){
       // if the measured distance is more than our current highest, its more open so we mark it as our current bestAngle
       highestDistance = obsDist;
       bestAngle = angle;
@@ -32,9 +36,12 @@ double IrSensor::scanAreaForGap(){
   if (highestDistance < stupidCloseWeAreStillBlocked){
     // uh oh we're really close on even the best one, so I guess we're still blocked
     // tell it that the best angle is straight backwards
+    Serial.println("stupid close");
     return -180;
   } else {
     // if the best angle is open enough, ie greater than our stupid close variable, 
+    Serial.print("best angle is :");
+    Serial.println(bestAngle);
     return bestAngle;
   }
 };
@@ -61,7 +68,7 @@ void IrSensor::moveIrSensor(int desiredAngle){
   // the servo library angle doesn't really match any real degrees so we map our desired angle to a calibrated set of values
   static int lastTheta = 0;
   int theta = map(desiredAngle, 0, SERVOLIMIT, 30, 125);
-  servo.write(theta);
+//  servo.write(theta);
   delay(abs(theta - lastTheta)*5); // wait for servo to move before continuing, dependent on distance to travel
   lastTheta = theta; 
 }
