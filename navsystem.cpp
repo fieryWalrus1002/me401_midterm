@@ -61,11 +61,8 @@
     *       control purposes. 
     */
 
-
-
 #include "navsystem.h"
 #include <Arduino.h>
-
 #include "btserial.h"
 
 NavPoint::NavPoint(float x1, float y1){
