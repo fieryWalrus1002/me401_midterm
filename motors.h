@@ -53,10 +53,11 @@
 #include "navsystem.h"
 #include <Servo.h>
 
-#define leftServoPin 32
-#define rightServoPin 31
+
 #define maxInput 1.0
 #define minInput -1.0
+
+
 
 struct RobotVars{
   float v;
@@ -117,7 +118,16 @@ class Motors {
 
 };
 
+//class IrMotor{
+//  public:
+//    void init();
+//    Servo irMotor;
+//    void moveIrSensor(int);
+//    
+//};
+
 Motors motors;
 Servo gateServo; 
+//IrMotor irMotor;
 
 #endif

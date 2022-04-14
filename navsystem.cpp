@@ -254,35 +254,34 @@ void NavSystem::checkPath(NavPoint* currentNavPoint){
   currentNavPoint->x = goalPoint.x;
   currentNavPoint->y = goalPoint.y;
   RobotPose robot =   {false, 0, 0, 0, 0}; // valid, ID, x, y, theta
-
+  int currentRobotNum = comms.getNumRobots();
   
-  for (int i = 0; i < NUM_ROBOTS; i++){
+  for (int i = 0; i < currentRobotNum; i++){
     
     // iterate through the robots, and find out if they're in our way and which one is the closest
     robot = robotPoses[i];
+    if (robot.ID != 2){
+       NavPoint robotNavPoint = {robot.x, robot.y};
 
-    if (robot.valid == true){ // doesn't check to see if its our robot, but the x position of our robot should be ~0 so it will be ignored below
-      NavPoint robotNavPoint = {robot.x, robot.y};
-      Serial.print("robot id: ");
-      Serial.print(robot.ID);
-      Serial.print(": (");
-      Serial.print(robotNavPoint.x);
-      Serial.print(", ");
-      Serial.print(robotNavPoint.y);
-      Serial.println(")");
-
-      Po_r = getPnr(robotNavPoint, robotPoses[MY_ROBOT_ID]);
-      if (Po_r.y > -ROBOBUMPER && Po_r.y < ROBOBUMPER && Po_r.x > 100 && Po_r.x < WORRYDISTANCE){
-        // if this is the case, its blocking so find out how far away it is
-        int obsDist = getDistanceRelRobot(Po_r);
-        if  (obsDist < closestDist){
-           closestID = robot.ID;
-           closestObs.x = Po_r.x;
-           closestObs.y = Po_r.y;
-           closestDist = obsDist; // this is the newest closest obstacle
+    Po_r = getPnr(robotNavPoint, robotPoses[MY_ROBOT_ID]);
+    Serial.print("robot.ID: ");
+    Serial.print(robot.ID);
+    Serial.print(", Po_r: ");
+    Serial.print(Po_r.x);
+    Serial.print(", ");
+    Serial.println(Po_r.y);
+    if (Po_r.y > -ROBOBUMPER && Po_r.y < ROBOBUMPER && Po_r.x > 100 && Po_r.x < WORRYDISTANCE){
+      // if this is the case, its blocking so find out how far away it is
+      int obsDist = getDistanceRelRobot(Po_r);
+      if  (obsDist < closestDist){
+         closestID = robot.ID;
+         closestObs.x = Po_r.x;
+         closestObs.y = Po_r.y;
+         closestDist = obsDist; // this is the newest closest obstacle
         }
       }
     }
+   
   }
 
   

@@ -1,8 +1,51 @@
 #include "irDistance.h"
 
-void IrSensor::init(){
+uint32_t irCallback(uint32_t currentTime) {
+  char irNewLeftA = digitalRead(EncoderAPin);
+  char irNewLeftB = digitalRead(EncoderBPin);
 
+  irPosition += (irNewLeftA ^ irLastLeftB) - (irLastLeftA ^ irNewLeftB); 
+
+  if((irLastLeftA ^ irNewLeftA) & (irLastLeftB ^ irNewLeftB))
+  {
+    irErrorLeft = true;
+  }
+
+  irLastLeftA = irNewLeftA;
+  irLastLeftB = irNewLeftB;
+
+  if (irCounter % 100*irSampleTime == 0)
+  {
+    irAngle = irPosition * 0.133;     
+
+    double output = irSensor.pidCalc(&irVars, irAngle);
+
+    if (output > 0)
+    {
+      digitalWrite(MotorDirectionPin,1);
+    }
+    else
+    {
+      digitalWrite(MotorDirectionPin,0);
+    }  
+    irSensor.moveIrSensor(abs(output));
+    
+    irCounter = 0;
+  }
+  irCounter++;
+  
+  return (currentTime + CORE_TICK_RATE);
+}
+
+void IrSensor::init(){
+  pinMode(MotorPWMPin, OUTPUT); // dc motor PWM using servo library
+  pinMode(MotorDirectionPin, OUTPUT); // direction pin
+  digitalWrite(MotorPWMPin,0);  // controls speed
+  digitalWrite(MotorDirectionPin,0); // controls direction
+  irMotor.attach(MotorPWMPin);
+  irMotor.write(0);
   pinMode(IR_OUT, INPUT);
+  attachCoreTimerService(irCallback);
 }
 
 double IrSensor::scanAreaForGap(){
@@ -65,12 +108,7 @@ void IrSensor::calibrateIrSensor(){
 
 
 void IrSensor::moveIrSensor(int desiredAngle){
-  // the servo library angle doesn't really match any real degrees so we map our desired angle to a calibrated set of values
-  static int lastTheta = 0;
-  int theta = map(desiredAngle, 0, SERVOLIMIT, 30, 125);
-//  servo.write(theta);
-  delay(abs(theta - lastTheta)*5); // wait for servo to move before continuing, dependent on distance to travel
-  lastTheta = theta; 
+  irVars._setPoint = desiredAngle;
 }
   
 int IrSensor::getRawDistance(int theta){
@@ -159,4 +197,22 @@ float IrSensor::distanceSweep(){
   {      
     return getRadHeading(maxDistAngle);   
   }
+}
+
+
+double IrSensor::pidCalc(PIDVars *vars, double currentError){
+  vars->_integral = 0;
+  double propError = (vars->Kp) * currentError;
+  float dampError = (vars->Kd) * ((currentError - (vars->_prevError))); // derivative of last time step
+  float intError = (vars->Ki) * vars->_integral;
+
+  double output = propError + dampError + intError;
+  vars->_prevError = currentError;
+  
+  if (output >(vars->maxLimit))
+    output = vars->maxLimit;
+  else if (output < (vars->minLimit))
+    output = vars->minLimit;
+
+  return output;
 }

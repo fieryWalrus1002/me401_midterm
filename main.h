@@ -26,9 +26,13 @@
 // ... I think
 const int L_LIMIT_EXTINT = 4; // extInt 4 is on pin 35
 const int R_LIMIT_EXTINT = 2; // extInt 2 is on pin 7
+const int leftServoPin = 32;
+const int rightServoPin = 31;
 const int GATE_SERVO_PIN = 30; // Servo1: PMD4/RE4   J16 
-const int GATE_OPEN_ANGLE = 90;
-const int GATE_CLOSED_ANGLE = 45;
+const int BT_RX = 36;
+const int BT_TX = 37;
+const int GATE_OPEN_ANGLE =  180;
+const int GATE_CLOSED_ANGLE = 90;
 volatile bool GATE_STATE = false;
 
 enum robotStates {
@@ -39,7 +43,7 @@ enum robotStates {
 };
 enum robotStates robotState = ATTACK;
 
-SoftwareSerial BTSerial(32, 33);
+SoftwareSerial BTSerial(BT_RX, BT_TX);
 
 robotStates prevState;
 RobotPose myRobotPose = {true, MY_ROBOT_ID, 500, 500, 0};
@@ -49,7 +53,7 @@ volatile bool CRASH_FLAG = false;
 volatile int CRASH_SIDE = 0; // 0 is left, 1 is right
 
 bool RADIO = true;
-bool serialDebug = false; // if true, will output serial debug info
+bool serialDebug = true; // if true, will output serial debug info
 bool btDebug = false; // if false, it will print to serial instead when performing serialDebug
 
 

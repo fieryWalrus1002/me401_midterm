@@ -109,7 +109,7 @@ void setup() {
   // Initialize the PID and IR interrupts
   // TODO: Change the kp, ki, kd in the ME491_PID_IR.h file to match your new tunings
   //       that you did after installing the sensor on your robot
-  setupPIDandIR();
+//  setupPIDandIR();
   
   // serial output every 2s
   Serial.println("Serial output every 2s on ");
@@ -136,12 +136,13 @@ void handleCrashR(){
 }
 
 void loop() {
+
   // check the BTSerial for instructions
-//  
-//  while (BTSerial.available())
-//  {
-//      process_inc_byte(BTSerial.read());
-//  }
+  
+  while (BTSerial.available())
+  {
+      process_inc_byte(BTSerial.read());
+  }
 
   
   // update the environment and change states as required
@@ -189,12 +190,7 @@ uint32_t btDebugCallback(uint32_t currentTime) {
       if (serialDebug == true){
         Serial.println(outputBuf);
       }
-      if (GATE_STATE == false){
-        GATE_STATE = true;
-      } else {
-        GATE_STATE = false;
-      }
-      openGate(GATE_STATE);
+
   return (currentTime + CORE_TICK_RATE * 2000);
 }
 
