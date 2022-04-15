@@ -12,7 +12,7 @@
 
 #ifndef _MAIN_H_
 #define _MAIN_H_
-#define MY_ROBOT_ID 19 // CHANGE THIS TO YOUR TEAM NUMBER
+#define MY_ROBOT_ID 2 // CHANGE THIS TO YOUR TEAM NUMBER
 #include <SoftwareSerial.h>
 #include "navsystem.h"
 #include "motors.h"
@@ -53,8 +53,8 @@ volatile bool CRASH_FLAG = false;
 volatile int CRASH_SIDE = 0; // 0 is left, 1 is right
 
 bool RADIO = true;
-bool serialDebug = true; // if true, will output serial debug info
-bool btDebug = true; // if false, it will print to serial instead when performing serialDebug
+bool serialDebug = false; // if true, will output serial debug info
+bool btDebug = false; // if false, it will print to serial instead when performing serialDebug
 
 
 

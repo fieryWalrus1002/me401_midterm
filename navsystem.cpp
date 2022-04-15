@@ -257,6 +257,13 @@ NavPoint NavSystem::getClosestObstacleInPath(){
 
         // get position of object wrt robot frame
         Po_r = nav.getPnr(poseNavPoint, myRobotPose); 
+//        Serial.print("pose: ");
+//        Serial.print(i);
+//        Serial.print(", wrtR (");
+//        Serial.print(Po_r.x);
+//        Serial.print(", ");
+//        Serial.print(Po_r.y);
+//        Serial.println(")");
 
         // if object is in front of us, and close enough to take into account
         if (Po_r.x < WORRYDISTANCE && Po_r.x > 0){
@@ -292,13 +299,11 @@ void NavSystem::checkPathToGoal(NavPoint* currentNavPoint){
   NavPoint Po_r = getClosestObstacleInPath();
 
   // get distance to closest obstacle
-  double pDist = nav.getDistanceRelRobot(Po_r);
-  Serial.print("pDist = ");
-  Serial.print(pDist);
-  
+  double pDist = getDistanceRelRobot(Po_r);
+
   // if distance to robot is less than a certain value, we need to avoid it
   // so choose the best distance to go
-  if (pDist < 500){
+  if (pDist < WORRYDISTANCE){
       // if obstacle is > 0, its on our left. So we go right. 
       if (Po_r.y >= 0){
         Po_r.y = Po_r.y - OBSAVOID_OFFSET;
@@ -309,21 +314,10 @@ void NavSystem::checkPathToGoal(NavPoint* currentNavPoint){
       
       // get world coordinates
       NavPoint Po_w = getPnw(Po_r, robotPoses[MY_ROBOT_ID]);
-      Serial.print("AVOID: (");
-      Serial.print(Po_w.x);
-      Serial.print(", ");
-      Serial.print(Po_w.y);
-      Serial.println(")");
-    
       editNavPoint(currentNavPoint, Po_w.x, Po_w.y);
   } else{
     // if there isn't an obstacle all that close, we can move towards our goal point
       editNavPoint(currentNavPoint, goalPoint.x, goalPoint.y);
-      Serial.print("CLEAR: (");
-      Serial.print(goalPoint.x);
-      Serial.print(", ");
-      Serial.print(goalPoint.y);
-      Serial.print(")");
   }
 } // checkPath();
 
@@ -370,8 +364,6 @@ NavPoint NavSystem::findNearestBall(){
   return closestBall;
 }
 
-
-
 bool NavSystem::closeEnough(RobotPose robot, NavPoint point){
   // if distance between robot and point is close enough(tm), return true
   
@@ -392,17 +384,19 @@ void NavSystem::depositTheCash(){
   motors.commandMotors(1, 1); // back up 
   delay(1500);
   openGate(false);// close the gate
+  BTSerial.println("depositTheCash");
 }
-
 
 void NavSystem::CountBalls()
 {
   static long prevTime=0 ;
   long CurrentTime = millis();
-  if ((CurrentTime - prevTime) > 1500)
+  if ((CurrentTime - prevTime) > 6000)
   {
     prevTime = CurrentTime;
     ballcaptured ++;
+    Serial.print("ballCaptured: ");
+    Serial.println(ballcaptured);
 }
 
 }

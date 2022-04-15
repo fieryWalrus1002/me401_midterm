@@ -14,19 +14,17 @@ void attack(){
     // get the position of the nearest ball
     NavPoint pnr = nav.getPnr(goalPoint , myRobotPose);
    
-   if(pnr.x < 400){
-    // if the ball is close enough, open the gate
-    openGate(true);
-
-    // and increment our score counter
-    nav.CountBalls();
+   if(pnr.x > 0 && pnr.x < 400 && pnr.y > -100 && pnr.y < 100){
+      // if the ball is close enough, open the gate
+      openGate(true);
+  
+      // and increment our score counter
+      nav.CountBalls();
    }
    else{
     // if there isn't a ball right in front of us, close the gate
-    openGate(false);
+      openGate(false);
    }
-   
- Serial.println(robotState);
 }
 
 void defend(){
@@ -200,7 +198,9 @@ uint32_t btDebugCallback(uint32_t currentTime) {
       float desiredHeading = nav.getHeadingRelRobot(pn_r);
       float x = currentNavPoint.x;
       float y = currentNavPoint.y;
-      String outputBuf = (String)millis() + "," + 
+      String outputBuf = (String)millis() + "," +
+                          "RobotState: " +
+                          (String)robotState + "," +
                           (String)x + "," + 
                           (String)y + "," + 
                           (String)currentDist + "," + 
@@ -214,7 +214,7 @@ uint32_t btDebugCallback(uint32_t currentTime) {
         Serial.println(outputBuf);
       }
 
-  return (currentTime + CORE_TICK_RATE * 2000);
+  return (currentTime + CORE_TICK_RATE * 1000);
 }
 
 bool crashState(bool crashSide){
@@ -223,7 +223,7 @@ bool crashState(bool crashSide){
    * If an obstacle occurs via the crash state, the IR sensor is then activated. 
    * Once activated the robot is to back out and scan the area searching for a new safe path.
    */
-   int howLongToBackUp = 500; // ms that we back up to clear obstacle. How long should it be?
+   int howLongToBackUp = 1500; // ms that we back up to clear obstacle. How long should it be?
    int r_motor_val;
    int l_motor_val;
    Serial.print("crash state, side: ");

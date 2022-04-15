@@ -72,11 +72,11 @@
 #define CLOSE_ENOUGH 200
 //#define OBSAVOID_OFFSET 75 // offset to avoid obstacles in our path
 const float OBSAVOID_OFFSET = 75.0;
-const int WORRYDISTANCE = 750; // how close should an obstacle be before we worry about avoiding it?
-const int ROBOBUMPER = 150; // what is the radius of our robobumper, ie 2*ROBOBUMPER gap should allow robot to pass through without clipping
+const int WORRYDISTANCE = 800; // how close should an obstacle be before we worry about avoiding it?
+const int ROBOBUMPER = 200; // what is the radius of our robobumper, ie 2*ROBOBUMPER gap should allow robot to pass through without clipping. this include radius of obs.
 const int ARENA_MIN = -250;
 const int ARENA_MAX = 2500;
-const int BASE_RADIUS = 400;
+const int BASE_RADIUS = 500;
 
 class NavPoint {
     public:
