@@ -8,18 +8,14 @@
 
 
 void attack(){
- 
     goalPoint = nav.findNearestBall();
     NavPoint pnr = nav.getPnr(goalPoint , myRobotPose);
    if(pnr.x < 150){
-    GATE_STATE = true;
+      GATE_STATE = true;
    }
    else{
-    GATE_STATE = false;
-   
+      GATE_STATE = false;
    }
-    
-  // 
 }
 
 void defend(){
