@@ -78,8 +78,6 @@ const int ARENA_MIN = -250;
 const int ARENA_MAX = 2500;
 const int BASE_RADIUS = 400;
 
-
-
 class NavPoint {
     public:
         NavPoint(float, float);
