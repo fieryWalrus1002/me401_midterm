@@ -156,49 +156,6 @@ float IrSensor::getDegreeHeading(int bestTheta)
 }
 
 
-float IrSensor::distanceSweep(){
-  static bool rightToLeft = 1;
-  int numMeas = SERVO_INCREMENT;
-  int maxDistAngle = 0;
-  int maxDist = 0;
-  int sweepVal[numMeas];
-  int angleInc = SERVOLIMIT / (numMeas - 1);
-
-  if (rightToLeft == 1){
-      // sweep from min to max angle
-    for (int i = 0; i < numMeas; i++){
-      int distMeas = getDistance(i * angleInc);
-      sweepVal[i] = distMeas;
-    }
-    rightToLeft = 0; // toggle for next run
-  } else {
-    // sweep from max angle back to zero
-    for (int i = numMeas; i >= 0; i--){
-      int distMeas = getDistance(i * angleInc);
-      sweepVal[i] = distMeas;
-    }
-     rightToLeft = 1; // toggle for next run
-  }
-
-   // find the angle to the greatest open space
-  for (int i = 0; i < numMeas; i++) {
-    if (sweepVal[i] > maxDist){
-      maxDist = sweepVal[i];
-      maxDistAngle =  i * angleInc;
-    }
-  }
-  Serial.print("maxDistAngle: ");
-  Serial.println(maxDistAngle);
-
-  // return the most open heading in either degrees or radians
-  if (RADIANS == 0){
-    return getDegreeHeading(maxDistAngle);
-  } else
-  {      
-    return getRadHeading(maxDistAngle);   
-  }
-}
-
 
 double IrSensor::pidCalc(PIDVars *vars, double currentError){
   vars->_integral = 0;

@@ -112,23 +112,23 @@ NavPoint testCourse[] = {
 void NavSystem::setHomeBase(RobotPose myStartPose){
   // automatically set your home base coordinates according to what quadrant your robot starts up in
   
-    if (myStartPose.x < 1100.0){
-        if (myStartPose.y > 1100.0){
-            // home base is in upper left quadrant
-            editNavPoint(&home_base,250.0, 1850.0);
-        } else {
-            // home base is in lower left quadrant
-            editNavPoint(&home_base,250.0, 250.0);
-        }       
-    } else {
-        if (myStartPose.y > 1000.0){
-            // home base is in upper right quadrant
-            editNavPoint(&home_base,1850.0, 1850.0);
-        } else {
-            // home base is in lower right quadrant
-            editNavPoint(&home_base,1850.0, 250.0);
-        }
-    }
+//    if (myStartPose.x < 1100.0){
+//        if (myStartPose.y > 1100.0){
+//            // home base is in upper left quadrant
+//            editNavPoint(&home_base,250.0, 1850.0);
+//        } else {
+//            // home base is in lower left quadrant
+//            editNavPoint(&home_base,250.0, 250.0);
+//        }       
+//    } else {
+//        if (myStartPose.y > 1000.0){
+//            // home base is in upper right quadrant
+//            editNavPoint(&home_base,1850.0, 1850.0);
+//        } else {
+//            // home base is in lower right quadrant
+//            editNavPoint(&home_base,1850.0, 250.0);
+//        }
+   // }
 
 } //setHomeBase();
 
@@ -412,6 +412,7 @@ NavPoint NavSystem::findNearestBall(){
 }
 
 
+
 bool NavSystem::closeEnough(RobotPose robot, NavPoint point){
   // if distance between robot and point is close enough(tm), return true
   
@@ -432,4 +433,17 @@ void NavSystem::depositTheCash(){
   motors.commandMotors(1, 1); // back up 
   delay(1500);
   openGate(false);// close the gate
+}
+
+
+void NavSystem::CountBalls()
+{
+  static long prevTime=0 ;
+  long CurrentTime = millis();
+  if ((CurrentTime - prevTime) > 1500)
+  {
+    prevTime = CurrentTime;
+    ballcaptured ++;
+}
+
 }

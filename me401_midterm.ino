@@ -8,14 +8,21 @@
 
 
 void attack(){
+    NavPoint nearestBall = nav.findNearestBall();
     goalPoint = nav.findNearestBall();
     NavPoint pnr = nav.getPnr(goalPoint , myRobotPose);
-   if(pnr.x < 150){
-      GATE_STATE = true;
+   if(pnr.x < 400){
+    openGate(true);
+   nav.CountBalls();
+   
    }
    else{
-      GATE_STATE = false;
+    openGate(false);
+    //GATE_STATE = false;
+   
    }
+   
+ Serial.println(robotState);
 }
 
 void defend(){
@@ -29,6 +36,7 @@ void capture(){
   if (baseReached == true){
     nav.depositTheCash(); //
     robotState = ATTACK;
+    ballcaptured = 0;
   }
   
 }
@@ -72,12 +80,10 @@ void handleState(){
 }
 
 void changeState(){
-//  Serial.println("changeState");
-//    if (robotState == ATTACK){
-//      if (numBalls == 0){
-//        robotState = DEFEND;
-//      }
-//    }
+if (ballcaptured >= 3)
+{
+  robotState = CAPTURE;
+}
 }
 
 
@@ -225,15 +231,15 @@ bool crashState(bool crashSide){
   if (crashSide == 0){
     // that means we collided on the left. how do we use that info?
     // Should we back up a slightly different direction?
-    l_motor_val = -1;
+    l_motor_val = 0;
     r_motor_val = 1;
   } else {
     // if crashSide is 1, that means we collided on the right. how do we use that info?
-    r_motor_val = 1;
-    l_motor_val = -1;
+    r_motor_val = 0;
+    l_motor_val = 1;
   }
   //The robot should back out of the obstacle area
-  motors.commandMotors(l_motor_val, r_motor_val); // back up according to values from the crashSide check
+  motors.commandMotors(1,1); // back up according to values from the crashSide check
   delay(howLongToBackUp); // wait for a few ms to get far enough back
   motors.commandMotors(0, 0); // stop motors for scanning
  
