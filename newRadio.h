@@ -42,7 +42,7 @@ class Comms {
     RobotPose getRobotPose (int robotID);
     BallPosition getClosestBallPos();
     void ME401_Radio_initialize(void);
-    bool validRobot(RobotPose, int);
+    bool validPose(RobotPose, int);
     
   private:
     void setupRadio();

@@ -104,8 +104,9 @@ class NavSystem
     void getNextNavPoint(NavPoint*); //pass currentNavPoint to getNext and it will assign the new coordinates
     void addNavPoint(NavPoint);
     NavPoint getPnw(NavPoint navpoint, RobotPose robot);
-    void checkPath(NavPoint* currentNavPoint);
+    void checkPathToGoal(NavPoint* currentNavPoint);
     void depositTheCash();
+    NavPoint getClosestObstacleInPath();
 
   private:
     int currNav = 0;

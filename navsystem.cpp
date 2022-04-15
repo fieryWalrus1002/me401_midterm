@@ -78,18 +78,18 @@ NavPoint::NavPoint(){
     y = 0.0;
 }
 
-
-void NavSystem::update(NavPoint *cnp){
-    /* Check if the robot has reached our destination. If that flag is true, 
-    *  modify the currentnavTarget's coordinates to the next waypoint. 
-    *
-    */
-    if (waypointReached == true){
-        getNextNavPoint(cnp);
-        waypointReached = false;
-    }
-
-}
+//
+//void NavSystem::update(NavPoint *cnp){
+//    /* Check if the robot has reached our destination. If that flag is true, 
+//    *  modify the currentnavTarget's coordinates to the next waypoint. 
+//    *
+//    */
+//    if (waypointReached == true){
+//        getNextNavPoint(cnp);
+//        waypointReached = false;
+//    }
+//
+//}
 
 
 
@@ -235,138 +235,97 @@ void NavSystem::getNextNavPoint(NavPoint *oldNavPoint){
 void NavSystem::addNavPoint(NavPoint navpoint){
 }
 
-void NavSystem::checkPath(NavPoint* currentNavPoint){
+
+NavPoint NavSystem::getClosestObstacleInPath(){
+  /*  Goes through all robot positions and find the closest obstacle in the 
+   * 
+   */
+   NavPoint closestObs = {5000.0, 5000.0};  
+    int closestID = 255;
+    int closestDist = 3000;
+    NavPoint Po_r; // position of obstacle relative to robot
+    
+   for (int i = 0; i < 40; i++){  
+      // iterate through the robots
+      RobotPose pose = robotPoses[i];
+
+      // check to see if pose is a valid object on the board. ignore self. 
+      if (comms.validPose(pose, MY_ROBOT_ID) == true){
+
+        // if pose exists on the board, get its nav point
+        NavPoint poseNavPoint = {pose.x, pose.y};
+
+        // get position of object wrt robot frame
+        Po_r = nav.getPnr(poseNavPoint, myRobotPose); 
+
+        // if object is in front of us, and close enough to take into account
+        if (Po_r.x < WORRYDISTANCE && Po_r.x > 0){
+             // check to see if its in our direct path ahead        
+             if (Po_r.y > -ROBOBUMPER && Po_r.y < ROBOBUMPER){
+              
+              // if this is the case, its blocking so find out how far away it is
+              int obsDist = getDistanceRelRobot(Po_r);
+              if  (obsDist < closestDist){
+                 closestID = pose.ID;
+                 closestObs.x = Po_r.x;
+                 closestObs.y = Po_r.y;
+                 closestDist = obsDist; // this is the newest closest obstacle
+            }
+        }
+      } 
+  }
+}
+  return closestObs;
+}
+
+void NavSystem::checkPathToGoal(NavPoint* currentNavPoint){
     /* Ahmed and Magnus's path checking algorithm
    *  Checks to see if the path is blocked by looking at the obstacles between robot and goal.
    *  If it finds an obstacle that is in the danger zone, it takes the closest one and tries to avoid it 
    *  by the shortest path. 
    */
-  NavPoint closestObs;  
-  int closestID = 255;
-  int closestDist = 3000;
-  NavPoint Po_r; // position of obstacle relative to robot
-  NavPoint Po_w; // position of obstacle relative to world 
-  NavPoint Pg_r; // position of goal relative to robot
 
-//  // assume you aren't blocked. If you're not blocked, you should be going toward your goal.
-  Pg_r = getPnr(goalPoint, robotPoses[MY_ROBOT_ID]);
-  int currentRobotNum = comms.getNumRobots();
+  // get NavPoint for goal wrt robot
+  NavPoint Pg_r = getPnr(goalPoint, robotPoses[MY_ROBOT_ID]);
+
+  // get navpoint for closest obstacle in path wrt robot
+  NavPoint Po_r = getClosestObstacleInPath();
+
+  // get distance to closest obstacle
+  double pDist = nav.getDistanceRelRobot(Po_r);
+  Serial.print("pDist = ");
+  Serial.print(pDist);
   
-  for (int i = 0; i < 20; i++){  
-      // iterate through the robots, and find out if they're in our way and which one is the closest
-      RobotPose robot = robotPoses[i];
+  // if distance to robot is less than a certain value, we need to avoid it
+  // so choose the best distance to go
+  if (pDist < 500){
+      // if obstacle is > 0, its on our left. So we go right. 
+      if (Po_r.y >= 0){
+        Po_r.y = Po_r.y - OBSAVOID_OFFSET;
+      } else {
+        // if obstacle is < 0, its on our right. so we go left.
+        Po_r.y = Po_r.y + OBSAVOID_OFFSET;
+      }
       
-      if (comms.validRobot(robot, MY_ROBOT_ID) == true){
-        NavPoint robotNavPoint = {robot.x, robot.y};
-        Po_r = nav.getPnw(robotNavPoint, myRobotPose);
-        Serial.print("robot: ");
-        Serial.print(robot.ID);
-        Serial.print(", Po_r: (");
-        Serial.print(Po_r.x);
-        Serial.print(", ");
-        Serial.print(Po_r.y);
-        Serial.println(")");
-      } 
+      // get world coordinates
+      NavPoint Po_w = getPnw(Po_r, robotPoses[MY_ROBOT_ID]);
+      Serial.print("AVOID: (");
+      Serial.print(Po_w.x);
+      Serial.print(", ");
+      Serial.print(Po_w.y);
+      Serial.println(")");
+    
+      editNavPoint(currentNavPoint, Po_w.x, Po_w.y);
+  } else{
+    // if there isn't an obstacle all that close, we can move towards our goal point
+      editNavPoint(currentNavPoint, goalPoint.x, goalPoint.y);
+      Serial.print("CLEAR: (");
+      Serial.print(goalPoint.x);
+      Serial.print(", ");
+      Serial.print(goalPoint.y);
+      Serial.print(")");
   }
-
-  /// check obstacles
-  for (int j = 20; j < 40; j++){
-        RobotPose robot = robotPoses[j];
-        NavPoint robotNavPoint = {robot.x, robot.y};
-        Po_r = nav.getPnw(robotNavPoint, myRobotPose);
-        if (comms.validRobot(robot, MY_ROBOT_ID) == true){
-          Serial.print("obstacle: ");
-          Serial.print(robot.ID);
-          Serial.print(", Po_r: (");
-          Serial.print(Po_r.x);
-          Serial.print(", ");
-          Serial.print(Po_r.y);
-          Serial.println(")");
-        }
-  }
-}
-
-//
-//void NavSystem::checkPath(NavPoint* currentNavPoint){
-//  /* Ahmed and Magnus's path checking algorithm
-//   *  Checks to see if the path is blocked by looking at the obstacles between robot and goal.
-//   *  If it finds an obstacle that is in the danger zone, it takes the closest one and tries to avoid it 
-//   *  by the shortest path. 
-//   */
-//  NavPoint closestObs;
-//  int closestDist = 3000;
-//  NavPoint Po_r;
-//  NavPoint Po_w;
-//  NavPoint Pg_r;
-//  int closestID = 255;
-//  
-//  // assume you aren't blocked. If you're not blocked, you should be going toward your goal.
-//  Pg_r = getPnr(goalPoint, robotPoses[MY_ROBOT_ID]);
-//  currentNavPoint->x = goalPoint.x;
-//  currentNavPoint->y = goalPoint.y;
-//  RobotPose robot =   {false, 0, 0, 0, 0}; // valid, ID, x, y, theta
-//  int currentRobotNum = comms.getNumRobots();
-//  
-//  for (int i = 0; i < currentRobotNum; i++){
-//    
-//    // iterate through the robots, and find out if they're in our way and which one is the closest
-//    robot = robotPoses[i];
-//    if (robot.ID != 2){
-//       NavPoint robotNavPoint = {robot.x, robot.y};
-//
-//    Po_r = getPnr(robotNavPoint, robotPoses[MY_ROBOT_ID]);
-////    Serial.print("robot.ID: ");
-////    Serial.print(robot.ID);
-////    Serial.print(", Po_r: ");
-////    Serial.print(Po_r.x);
-////    Serial.print(", ");
-////    Serial.println(Po_r.y);
-//    if (Po_r.y > -ROBOBUMPER && Po_r.y < ROBOBUMPER && Po_r.x > 100 && Po_r.x < WORRYDISTANCE){
-//      // if this is the case, its blocking so find out how far away it is
-//      int obsDist = getDistanceRelRobot(Po_r);
-//      if  (obsDist < closestDist){
-//         closestID = robot.ID;
-//         closestObs.x = Po_r.x;
-//         closestObs.y = Po_r.y;
-//         closestDist = obsDist; // this is the newest closest obstacle
-//        }
-//      }
-//    }
-//   
-//  }
-//
-//  
-//  // choose the offset direction to avoid the obstacle
-//  if (closestObs.y >= 0){
-//    // got right around it, because its on your left
-//    Po_r.y = Po_r.y - OBSAVOID_OFFSET;
-//  }
-//  if (closestObs.y < 0){
-//    // go left around it, because its to your right
-//    Po_r.y = Po_r.y + OBSAVOID_OFFSET;
-//  }
-//    // we have the offset added in, now get world coordinates
-//    if (closestID == 255){
-//      return;
-//    }
-//    Po_w = getPnw(Po_r, robotPoses[MY_ROBOT_ID]);
-//    currentNavPoint->y = Po_w.y;
-//    currentNavPoint->x = Po_w.x;
-////    Serial.print("closest obs is: ");
-////    Serial.print(closestID);
-////    Serial.print(", Po_w: ");
-////    Serial.print(Po_w.x);
-////    Serial.print(", ");
-////    Serial.print(Po_w.y);
-////    Serial.println(")");
-//}
-//
-////NavPoint NavSystem::findNearestBall(){
-////  for (int i = 0; i < numBalls; i++){
-////    ballPositions[i];
-////  }
-////  nav.editNavPoint(&goalPoint,ballPositions[0].x,ballPositions[0].y);
-////}
+} // checkPath();
 
 NavPoint NavSystem::getNavPointFromBallPos(BallPosition ballPos){
   // turn a ballPosition into a nav point for ease of coding

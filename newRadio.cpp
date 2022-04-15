@@ -179,8 +179,8 @@ void Comms::ME401_Radio_initialize(void)
   radio.setHighPower(); // Always use this for RFM69HCW
 }
 
-bool Comms::validRobot(RobotPose robot, int myId){
-  if (robot.ID == 0 || robot.ID == myId){
+bool Comms::validPose(RobotPose pose, int myId){
+  if (pose.ID == 0 || pose.ID == myId){
     return false;
   } else{
     return true;

@@ -8,18 +8,22 @@
 
 
 void attack(){
-    NavPoint nearestBall = nav.findNearestBall();
-    goalPoint = nav.findNearestBall();
+    // this sets the goalpoint we are trying to get to. this is used during the checkPath function to set currentNavPoint
+    goalPoint = nav.findNearestBall(); 
+
+    // get the position of the nearest ball
     NavPoint pnr = nav.getPnr(goalPoint , myRobotPose);
-   if(pnr.x < 400){
-    openGate(true);
-   nav.CountBalls();
    
+   if(pnr.x < 400){
+    // if the ball is close enough, open the gate
+    openGate(true);
+
+    // and increment our score counter
+    nav.CountBalls();
    }
    else{
+    // if there isn't a ball right in front of us, close the gate
     openGate(false);
-    //GATE_STATE = false;
-   
    }
    
  Serial.println(robotState);
@@ -31,10 +35,17 @@ void defend(){
 }
 
 void capture(){  
-  currentNavPoint = home_base;
-  bool baseReached = nav.closeEnough(myRobotPose, currentNavPoint);
+  // set our goalPoint to home base
+  goalPoint = home_base;
+
+  // check if we have reached our base
+  bool baseReached = nav.closeEnough(myRobotPose, goalPoint);
+
   if (baseReached == true){
-    nav.depositTheCash(); //
+    //drop the payload
+    nav.depositTheCash();
+
+    // reset state to ATTACK so we can go for more balls
     robotState = ATTACK;
     ballcaptured = 0;
   }
@@ -50,7 +61,7 @@ void checkStatus(){
     myRobotPose = comms.getRobotPose(MY_ROBOT_ID);
 
     // update the navigation systems data
-    nav.update(&currentNavPoint);
+    //    nav.update(&currentNavPoint);
    
 }
 
@@ -128,9 +139,9 @@ void setup() {
   Serial.println("Serial output every 2s on ");
   attachCoreTimerService(btDebugCallback);
   
-  // update the goal position every 500 ms
-  attachCoreTimerService(updateCallback);
-  Serial.println("coreTimer attached");
+//  // update the goal position every 500 ms
+//  attachCoreTimerService(updateCallback);
+//  Serial.println("coreTimer attached");
 
   // attach the external interrupts for the limit switches
   attachInterrupt(L_LIMIT_EXTINT, handleCrashL, FALLING);
@@ -151,37 +162,36 @@ void handleCrashR(){
 void loop() {
 
   // check the BTSerial for instructions
-  
   while (BTSerial.available())
   {
       process_inc_byte(BTSerial.read());
   }
 
-  
   // update the environment and change states as required
    if (RADIO == true){
       checkStatus(); // check the status of the game environment
       changeState(); // check to see if a state change is called for
       handleState(); // execute current state function
    }
-   
 
-   if (CRASH_FLAG == true){      
+   // resolve any crashes with local obstacles
+   while (CRASH_FLAG == true){      
       CRASH_FLAG = crashState(CRASH_SIDE);
    } 
-   else {
-      // check to see if we have a clear path to our goal point
-      nav.checkPath(&currentNavPoint);
-    
-      // update the relative position of the nav point
-      pn_r = nav.getPnr(currentNavPoint, myRobotPose);
-    
-      // are we close enough to our currentNavPoint?
-      bool areWeThereYet = nav.closeEnough(myRobotPose, currentNavPoint);
-    
-      // use navpoint and robot pose to calculate PID changes needed and modify motor output
-      motors.update(pn_r, areWeThereYet); 
-   } //end else
+  
+  // check to see if we have a clear path to our goal point
+  // if not, we will adjust our course to the side of an obstacle
+  nav.checkPathToGoal(&currentNavPoint);
+
+  // update the relative position of the nav point
+  pn_r = nav.getPnr(currentNavPoint, myRobotPose);
+
+  // are we close enough to our currentNavPoint? if so, motor output will be zero for this loop
+  bool areWeThereYet = nav.closeEnough(myRobotPose, currentNavPoint);
+
+  // use navpoint and robot pose to calculate PID changes needed and modify motor output
+  motors.update(pn_r, areWeThereYet); 
+
    
 } // end loop()
 
@@ -205,16 +215,6 @@ uint32_t btDebugCallback(uint32_t currentTime) {
       }
 
   return (currentTime + CORE_TICK_RATE * 2000);
-}
-
-uint32_t updateCallback(uint32_t currentTime) {
-  if (robotState == ATTACK){
-    // find nearest ball
-    NavPoint nearestBall = nav.findNearestBall();
-    goalPoint = nav.findNearestBall();
-    
-  }
-  return (currentTime + CORE_TICK_RATE * 500);
 }
 
 bool crashState(bool crashSide){
