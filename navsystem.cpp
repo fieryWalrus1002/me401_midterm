@@ -307,13 +307,18 @@ void NavSystem::checkPathToGoal(NavPoint* currentNavPoint){
       // if obstacle is > 0, its on our left. So we go right. 
       if (Po_r.y >= 0){
         Po_r.y = Po_r.y - OBSAVOID_OFFSET;
+        Po_r.x = 600; // forward and to the right
       } else {
         // if obstacle is < 0, its on our right. so we go left.
         Po_r.y = Po_r.y + OBSAVOID_OFFSET;
+        Po_r.x = 600; // forward, and to the left
       }
+  
+      // 
       
       // get world coordinates
       NavPoint Po_w = getPnw(Po_r, robotPoses[MY_ROBOT_ID]);
+      
       editNavPoint(currentNavPoint, Po_w.x, Po_w.y);
   } else{
     // if there isn't an obstacle all that close, we can move towards our goal point
