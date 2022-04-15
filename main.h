@@ -34,7 +34,7 @@ const int BT_TX = 37;
 const int GATE_OPEN_ANGLE =  180;
 const int GATE_CLOSED_ANGLE = 90;
 volatile bool GATE_STATE = false;
-
+ int ballcaptured = 0;
 enum robotStates {
   ATTACK, // search for balls in neutral and opposing base
   CAPTURE, // return with a ball to home base
@@ -54,7 +54,7 @@ volatile int CRASH_SIDE = 0; // 0 is left, 1 is right
 
 bool RADIO = true;
 bool serialDebug = true; // if true, will output serial debug info
-bool btDebug = false; // if false, it will print to serial instead when performing serialDebug
+bool btDebug = true; // if false, it will print to serial instead when performing serialDebug
 
 
 
