@@ -245,6 +245,7 @@ NavPoint NavSystem::getClosestObstacleInPath(){
     int closestDist = 3000;
     NavPoint Po_r; // position of obstacle relative to robot
     
+    
    for (int i = 0; i < 40; i++){  
       // iterate through the robots
       RobotPose pose = robotPoses[i];
@@ -277,6 +278,11 @@ NavPoint NavSystem::getClosestObstacleInPath(){
                  closestObs.x = Po_r.x;
                  closestObs.y = Po_r.y;
                  closestDist = obsDist; // this is the newest closest obstacle
+                  if (pose.ID < 20){
+                    closestRobotXY.x = Po_r.x;
+                    closestRobotXY.y = Po_r.y;
+               }
+    
             }
         }
       } 

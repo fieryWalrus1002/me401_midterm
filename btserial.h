@@ -22,8 +22,8 @@
 // #include "contServo.h"
 
 
-const int HC06RX_PIN = 0;
-const int HC06TX_PIN = 1;
+const int HC06RX_PIN = 40;
+const int HC06TX_PIN = 41;
 typedef enum
 {
     NONE,
@@ -78,14 +78,11 @@ void handle_action()
     case GOT_C:
         break;
     case GOT_D:
+        
         break;
     case GOT_E:
         break;
     case GOT_F:
-        BTSerial.println("F");
-        motors.commandMotors(-1, -1);
-        delay(current_value * 100);
-        motors.commandMotors(0, 0);
         break;
     case GOT_G:
         nav.goToPoint(current_value, &currentNavPoint);

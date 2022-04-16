@@ -56,8 +56,10 @@
 
 #define maxInput 1.0
 #define minInput -1.0
-
-
+void orientSunbeam();
+float hku = 2;
+float hTu = 0.23;
+double hkp = 0.6*hku,hki = 2.0*hkp/hTu,hkd = hkp*hTu*0.125; //classid pid
 
 struct RobotVars{
   float v;
@@ -90,6 +92,8 @@ struct PIDVars{
   double minLimit;
 };
 
+
+
 void openGate(bool);
 
 class Motors {
@@ -100,7 +104,7 @@ class Motors {
         void setHeadingKp(PIDVars*, int);
         void setVelocityKp(PIDVars*, int);
         PIDVars vVars = {1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 100, -100};
-        PIDVars hVars = {2, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 100, -100};
+        PIDVars hVars = {hkp, hki, hkd, 0.0, 0.0, 0.0, 0.0, 0.0, 100, -100};
         Servo leftServo;
         Servo rightServo;
         float distTh = 25;
@@ -128,6 +132,7 @@ class Motors {
 
 Motors motors;
 Servo gateServo; 
+Servo sunbeamServo;
 //IrMotor irMotor;
 
 #endif

@@ -8,9 +8,9 @@
 
 
 void attack(){
-    // this sets the goalpoint we are trying to get to. this is used during the checkPath function to set currentNavPoint
-    goalPoint = nav.findNearestBall(); 
-
+    orientSunbeam(); // fire the laser
+    digitalWrite(ATTACK_LED_PIN, HIGH);
+    digitalWrite(CAPTURE_LED_PIN, LOW);
     // get the position of the nearest ball
     NavPoint pnr = nav.getPnr(goalPoint , myRobotPose);
    
@@ -33,11 +33,16 @@ void defend(){
 }
 
 void capture(){  
+  digitalWrite(ATTACK_LED_PIN, LOW);
+  digitalWrite(CAPTURE_LED_PIN, HIGH);
   // set our goalPoint to home base
   goalPoint = home_base;
 
   // check if we have reached our base
   bool baseReached = nav.closeEnough(myRobotPose, goalPoint);
+
+  // make sure gate is closed the whole time
+  openGate(true);
 
   if (baseReached == true){
     //drop the payload
@@ -100,7 +105,9 @@ if (ballcaptured >= 3)
 void setup() {
   Serial.begin(115200);
   Serial.print("serial begin");
-  
+  pinMode(ATTACK_LED_PIN, OUTPUT);
+  pinMode(CAPTURE_LED_PIN, OUTPUT);
+
   irSensor.init(); // Sharp IR distance sensor initialize
   Serial.print(", ir sensor online");
 
@@ -138,8 +145,8 @@ void setup() {
   attachCoreTimerService(btDebugCallback);
   
 //  // update the goal position every 500 ms
-//  attachCoreTimerService(updateCallback);
-//  Serial.println("coreTimer attached");
+attachCoreTimerService(checkPathCallback);
+Serial.println("goalPoint timer attached, every 500ms");
 
   // attach the external interrupts for the limit switches
   attachInterrupt(L_LIMIT_EXTINT, handleCrashL, FALLING);
@@ -176,11 +183,20 @@ void loop() {
    while (CRASH_FLAG == true){      
       CRASH_FLAG = crashState(CRASH_SIDE);
    } 
-  
-  // check to see if we have a clear path to our goal point
-  // if not, we will adjust our course to the side of an obstacle
-  nav.checkPathToGoal(&currentNavPoint);
 
+  
+    // This boolean is set by a timer, every 500 ms. It will prevent oscillations from navpoint to navpoint during obstacle avoidance, hopefully!
+    
+    if (robotState == ATTACK){
+    // this sets the goalpoint we are trying to get to. this is used during the checkPath function to set currentNavPoint
+        goalPoint = nav.findNearestBall(); 
+    } 
+    
+    // check to see if we have a clear path to our goal point
+    // if not, we will adjust our course to the side of an obstacle
+    nav.checkPathToGoal(&currentNavPoint);
+    checkPath = false;
+ 
   // update the relative position of the nav point
   pn_r = nav.getPnr(currentNavPoint, myRobotPose);
 
@@ -189,8 +205,7 @@ void loop() {
 
   // use navpoint and robot pose to calculate PID changes needed and modify motor output
   motors.update(pn_r, areWeThereYet); 
-
-   
+  
 } // end loop()
 
 uint32_t btDebugCallback(uint32_t currentTime) {
@@ -216,6 +231,13 @@ uint32_t btDebugCallback(uint32_t currentTime) {
 
   return (currentTime + CORE_TICK_RATE * 1000);
 }
+
+uint32_t checkPathCallback(uint32_t currentTime) {
+    checkPath = true;
+    return (currentTime + CORE_TICK_RATE * 150);
+}
+
+
 
 bool crashState(bool crashSide){
   /* Korey's local obstacle avoidance logic, 4-11-22
@@ -247,17 +269,17 @@ bool crashState(bool crashSide){
   //Seek ‘empty’ direction, if two open paths go right
   // so the scanAreaForGap should return a double, corresponding to an angle from the robot that looks more open
   // the code for this function is in irDistance.cpp
-//  double emptyDir = -180;
+  double emptyDir = -180;
 //  emptyDir = irSensor.scanAreaForGap();
 //  Serial.print("irSensor:");
 //  Serial.println(emptyDir);
 //  //If all directions are blocked back out further
-//  if (emptyDir == -180){
-//    // scanAreaForGap returns -180 if there are no distances greater than a threshold
-//    // This means we're still blocked, so we should back up and try again. We do that by leaving the
-//    // crashed flag true so this function will be called again
-//    return true;
-//  }
+  if (emptyDir == -180){
+    // scanAreaForGap returns -180 if there are no distances greater than a threshold
+    // This means we're still blocked, so we should back up and try again. We do that by leaving the
+    // crashed flag true so this function will be called again
+    return false;
+  }
 //
 //  // now that we have a proper open angle, how should we proceed? Do we pick a navpoint in that direction? or just use 
 //  // commandMotors to turn that far, and how do we know how far we turned?

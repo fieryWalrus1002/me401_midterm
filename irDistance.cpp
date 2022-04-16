@@ -53,8 +53,8 @@ double IrSensor::scanAreaForGap(){
   //Scan the area around the obstacle to search for routes around it if any
   //Seek ‘empty’ direction, if two open paths go right
   // so the scanAreaForGap should return a double, corresponding to an angle from the robot that looks more open
-  int minAngle = 0; // I'm making these up, I haven't used the servo yet
-  int maxAngle = 180;
+  int minAngle = 60; // I'm making these up, I haven't used the servo yet
+  int maxAngle = 120;
   double bestAngle = 0; // holds the best angle corresponding to the highest distance
   int highestDistance = 0; // the best really sucks to begin with so anything it finds is okay
   int stupidCloseWeAreStillBlocked = 400; // how far away is stupid close? Change it to something sensible

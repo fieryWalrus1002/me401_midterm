@@ -72,6 +72,20 @@ void Motors::update(NavPoint navpoint, bool reachedPoint){
   rotError = (hVars._setPoint - targetAngle) / (2 * M_PI); // normalized to max angle value in radians
   angleAdj = pidCalc(&hVars, rotError);
 
+   if (headingTune == true){
+    static long lastTime = 0;
+    long thisTime = millis();
+    if (thisTime - lastTime > 200){
+      velocity = 0;
+      Serial.print(millis());
+      Serial.print(", ");
+      Serial.print(targetAngle);
+      Serial.print(", ");
+      Serial.println(rotError);
+      lastTime = lastTime;
+    }
+    
+   }
    double leftMotorVal = (velocity + angleAdj);
    double rightMotorVal = (velocity - angleAdj);
    robotVars.l = leftMotorVal;
@@ -131,3 +145,16 @@ void openGate(bool gateStatus){
     gateServo.write(GATE_CLOSED_ANGLE);
   }
 }
+
+void orientSunbeam(){
+  // find relative angle to closest robot. closestRobot navpoint is relative to robot
+  double rads = nav.getHeadingRelRobot(nav.closestRobotXY);
+  double degree = nav.convRadDegs(rads) + 90; // -90 would be 0, and 90 would be 180
+  if (degree > 0 && degree < 180){
+    sunbeamServo.write(degree);
+  } else {
+    sunbeamServo.write(90);
+  }
+}
+  
+ 

@@ -55,7 +55,10 @@ volatile int irAngle;
 // Global variables for the timer interrupt handling
 int irSampleTime = 10;
 long irCounter=1;
- PIDVars irVars = {9, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 255, -255};
+float ku = 3.6;
+float Tu = 0.36;
+double kp = 0.6*ku,ki = 2.0*kp/Tu,kd = kp*Tu*0.125; //classid pid
+PIDVars irVars = {kp, ki, kd, 0.0, 0.0, 0.0, 0.0, 0.0, 255, -255};
   
 class IrSensor {
   public:

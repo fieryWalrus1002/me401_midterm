@@ -17,6 +17,8 @@
 #include "navsystem.h"
 #include "motors.h"
 
+bool headingTune = false;
+
 // These aren't the pin numbers, they are the external interrupt numbers.
 // we have to look them up and find out which are available, and then what pin they are found on 
 // connect the pins to the COM on the limit switch in question
@@ -29,11 +31,15 @@ const int R_LIMIT_EXTINT = 2; // extInt 2 is on pin 7
 const int leftServoPin = 32;
 const int rightServoPin = 31;
 const int GATE_SERVO_PIN = 30; // Servo1: PMD4/RE4   J16 
+const int SUNBEAM_SERVO_PIN = 33; 
 const int BT_RX = 36;
 const int BT_TX = 37;
 const int GATE_OPEN_ANGLE =  180;
 const int GATE_CLOSED_ANGLE = 90;
 volatile bool GATE_STATE = false;
+const int ATTACK_LED_PIN = 26; 
+const int CAPTURE_LED_PIN = 27;
+
  int ballcaptured = 0;
 enum robotStates {
   ATTACK, // search for balls in neutral and opposing base
@@ -55,7 +61,7 @@ volatile int CRASH_SIDE = 0; // 0 is left, 1 is right
 bool RADIO = true;
 bool serialDebug = false; // if true, will output serial debug info
 bool btDebug = false; // if false, it will print to serial instead when performing serialDebug
-
+bool checkPath = false; // sets the state for when we check our path calculations to goalpoint
 
 
 #endif

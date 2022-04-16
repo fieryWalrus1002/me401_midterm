@@ -107,13 +107,15 @@ class NavSystem
     void checkPathToGoal(NavPoint* currentNavPoint);
     void depositTheCash();
     NavPoint getClosestObstacleInPath();
+    NavPoint closestRobotXY;
+    double convRadDegs(float);
 
   private:
     int currNav = 0;
     int maxNav = 10;
     bool waypointReached = false;
     double convDegRads(float);
-    double convRadDegs(float);
+    
 };
 
 NavPoint navList[10] = {{500., 500.0},
