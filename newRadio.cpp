@@ -73,7 +73,7 @@ void Comms::updateRobotPoseAndBallPositions (void)
   while (error == 0)
   {
     counter += 1;
-    if (counter > 1000 && idx == 0){
+    if (counter > 1000000 && idx == 0){
       //failure to find radio message
       return;
     }
@@ -185,5 +185,18 @@ bool Comms::validPose(RobotPose pose, int myId){
   } else{
     return true;
   }
-
 }
+
+void Comms::getTestPoses(){
+    RobotPose robot = {true, 4, 0, 500, 0};
+    RobotPose myRobot = {true, 2, 1000, 1000};
+    RobotPose obstacle = {true, 21, 500, 500, 0};
+    BallPosition ball;
+    ball.x = 1200;
+    ball.y = 1000;
+    
+    robotPoses[0] = robot;
+    robotPoses[2] = myRobot;
+    robotPoses[21] = obstacle;
+    ballPositions[0] = ball;
+  }

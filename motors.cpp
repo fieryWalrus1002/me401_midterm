@@ -71,11 +71,15 @@ void Motors::update(NavPoint navpoint, bool reachedPoint){
   // calculate rotation error (difference between desired heading and measured
   rotError = (hVars._setPoint - targetAngle) / (2 * M_PI); // normalized to max angle value in radians
   angleAdj = pidCalc(&hVars, rotError);
-
+  
    double leftMotorVal = (velocity + angleAdj);
    double rightMotorVal = (velocity - angleAdj);
-   robotVars.l = leftMotorVal;
-   robotVars.r = rightMotorVal;
+
+   if (IMMOBILE == true){
+      leftMotorVal = 0;
+      rightMotorVal = 0;
+   }
+   
 
    Motors::commandMotors(leftMotorVal, rightMotorVal);
    
@@ -103,7 +107,7 @@ double Motors::pidCalc(PIDVars *vars, double currentError){
   float dampError = (vars->Kd) * ((currentError - (vars->_prevError))); // derivative of last time step
   float intError = (vars->Ki) * vars->_integral;
 
-  double output = propError + dampError + intError;
+  double output = propError; //+ dampError + intError;
   vars->_prevError = currentError;
   
   if (output >(vars->maxLimit))
@@ -131,3 +135,17 @@ void openGate(bool gateStatus){
     gateServo.write(GATE_CLOSED_ANGLE);
   }
 }
+
+
+void orientSunbeam(){
+  // find relative angle to closest robot. closestRobot navpoint is relative to robot
+  int offset = 70;
+  double rads = nav.getHeadingRelRobot(nav.closestRobotXY);
+  double degree = nav.convRadDegs(rads) + offset; // -90 would be 0, and 90 would be 180
+  if (degree > 0 && degree < 180){
+    sunbeamServo.write(degree);
+  } else {
+    sunbeamServo.write(offset);
+  }
+}
+  

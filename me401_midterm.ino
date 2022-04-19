@@ -10,21 +10,20 @@
 void attack(){
     // this sets the goalpoint we are trying to get to. this is used during the checkPath function to set currentNavPoint
     goalPoint = nav.findNearestBall(); 
-
     // get the position of the nearest ball
-    NavPoint pnr = nav.getPnr(goalPoint , myRobotPose);
+//    NavPoint pnr = nav.getPnr(goalPoint , myRobotPose);h
    
-   if(pnr.x > 0 && pnr.x < 400 && pnr.y > -100 && pnr.y < 100){
-      // if the ball is close enough, open the gate
-      openGate(true);
-  
-      // and increment our score counter
-      nav.CountBalls();
-   }
-   else{
-    // if there isn't a ball right in front of us, close the gate
-      openGate(false);
-   }
+//   if(pnr.x > 0 && pnr.x < 500 && pnr.y > -100 && pnr.y < 100){
+//      // if the ball is close enough, open the gate
+//      openGate(true);
+//  
+//      // and increment our score counter
+//      nav.CountBalls();
+//   }
+//   else{
+//    // if there isn't a ball right in front of us, close the gate
+//      openGate(false);
+//   }
 }
 
 void defend(){
@@ -32,7 +31,9 @@ void defend(){
   goalPoint = home_base;
 }
 
-void capture(){  
+void capture(){
+  digitalWrite(CAPTURE_PIN, HIGH);
+  digitalWrite(ATTACK_PIN, LOW);
   // set our goalPoint to home base
   goalPoint = home_base;
 
@@ -89,7 +90,7 @@ void handleState(){
 }
 
 void changeState(){
-if (ballcaptured >= 3)
+if (ballcaptured >= 6)
 {
   robotState = CAPTURE;
 }
@@ -100,10 +101,12 @@ if (ballcaptured >= 3)
 void setup() {
   Serial.begin(115200);
   Serial.print("serial begin");
-  
+  pinMode(ATTACK_PIN, OUTPUT);
+  pinMode(CAPTURE_PIN, OUTPUT);
+  pinMode(SUNBEAM_SERVO_PIN, OUTPUT);
   irSensor.init(); // Sharp IR distance sensor initialize
   Serial.print(", ir sensor online");
-
+  
   if (RADIO == true){
     comms.ME401_Radio_initialize(); // Initialize the RFM69HCW radio  
     checkStatus();
@@ -119,7 +122,7 @@ void setup() {
   motors.leftServo.attach(leftServoPin);
   motors.rightServo.attach(rightServoPin);
   gateServo.attach(GATE_SERVO_PIN);
-  
+  sunbeamServo.attach(SUNBEAM_SERVO_PIN);
   // set the home base coordinates to the corner of the arena we start in
   nav.setHomeBase(robotPoses[MY_ROBOT_ID]);
   Serial.print(", home_base set to (");
@@ -138,7 +141,7 @@ void setup() {
   attachCoreTimerService(btDebugCallback);
   
 //  // update the goal position every 500 ms
-//  attachCoreTimerService(updateCallback);
+  attachCoreTimerService(updateCallback);
 //  Serial.println("coreTimer attached");
 
   // attach the external interrupts for the limit switches
@@ -147,18 +150,14 @@ void setup() {
   Serial.println("limit switches activated");
 }
 
-void handleCrashL(){
-  CRASH_FLAG = true;
-  CRASH_SIDE = 0;
-}
 
-void handleCrashR(){
-  CRASH_FLAG = true;
-  CRASH_SIDE = 1;
-}
+
 
 void loop() {
-
+  static long prevTime = 0;
+  long timeElapsed = millis() - prevTime;
+  prevTime = millis();
+  
   // check the BTSerial for instructions
   while (BTSerial.available())
   {
@@ -170,35 +169,78 @@ void loop() {
       checkStatus(); // check the status of the game environment
       changeState(); // check to see if a state change is called for
       handleState(); // execute current state function
+   } else {
+//      comms.getTestPoses();
+      handleState();
+      myRobotPose.x = 1000;
+      myRobotPose.y = 1000;
+      currentNavPoint.x = 1200;
+      currentNavPoint.y = 1000;
+      changeState();
+
    }
 
-   // resolve any crashes with local obstacles
-   while (CRASH_FLAG == true){      
-      CRASH_FLAG = crashState(CRASH_SIDE);
-   } 
-  
-  // check to see if we have a clear path to our goal point
-  // if not, we will adjust our course to the side of an obstacle
-  nav.checkPathToGoal(&currentNavPoint);
+   /***********************************************************************
+   *  Collision avoidance
+   **********************************************************************/
 
+
+   // check for upcoming collision with local obstacles
+   pathClear = irSensor.checkFrontIrDistance(lookAheadDistance);
+   if (pathClear == false){
+    
+//    pathAngle = irSensor.scanForPath();
+//    nav.setPathByAngle(pathAngle);
+      CRASH_FLAG = true;
+   }
+
+   // resolve any crashes with local obstacles that have occured
+   while (CRASH_FLAG == true && IMMOBILE == false){      
+      CRASH_FLAG = nav.crashState(CRASH_SIDE);
+      Serial.print("CRASH");
+   } 
+
+   
+//
+//  // periodic path checking for global obstacles
+//  if (updateState = true){
+//      // check to see if we have a clear path to our goal point
+//      // if not, we will adjust our course to the side of an obstacle
+//      nav.checkPathToGoal(&currentNavPoint);
+//  
+//      updateState = false;
+//  }
+
+  /***********************************************************************
+   *  Motor updates
+   **********************************************************************/
+
+  
+  nav.editNavPoint(&currentNavPoint,  1200,  1000);
+  
   // update the relative position of the nav point
   pn_r = nav.getPnr(currentNavPoint, myRobotPose);
-
+  
   // are we close enough to our currentNavPoint? if so, motor output will be zero for this loop
   bool areWeThereYet = nav.closeEnough(myRobotPose, currentNavPoint);
 
   // use navpoint and robot pose to calculate PID changes needed and modify motor output
   motors.update(pn_r, areWeThereYet); 
-
    
 } // end loop()
 
+/***********************************************************************
+ * CALLBACK FUNCTIONS
+ **********************************************************************/
+
 uint32_t btDebugCallback(uint32_t currentTime) {
+  String outputBuf;
+     if (btDebug == true || serialDebug == true){
       float currentDist = nav.getDistanceRelRobot(pn_r);
       float desiredHeading = nav.getHeadingRelRobot(pn_r);
       float x = currentNavPoint.x;
       float y = currentNavPoint.y;
-      String outputBuf = (String)millis() + "," +
+      outputBuf = (String)millis() + "," +
                           "RobotState: " +
                           (String)robotState + "," +
                           (String)x + "," + 
@@ -207,6 +249,7 @@ uint32_t btDebugCallback(uint32_t currentTime) {
                           (String)motors.velocity  + "," + 
                           (String)desiredHeading  + "," + 
                           (String)motors.angleAdj + ";";
+     }
       if (btDebug == true){
         BTSerial.println(outputBuf);
       } 
@@ -214,55 +257,26 @@ uint32_t btDebugCallback(uint32_t currentTime) {
         Serial.println(outputBuf);
       }
 
-  return (currentTime + CORE_TICK_RATE * 1000);
+  return (currentTime + CORE_TICK_RATE * 2000);
 }
 
-bool crashState(bool crashSide){
-  /* Korey's local obstacle avoidance logic, 4-11-22
-   * This function is used when a limit switch triggers and the CRASH_FLAG flag is true.
-   * If an obstacle occurs via the crash state, the IR sensor is then activated. 
-   * Once activated the robot is to back out and scan the area searching for a new safe path.
-   */
-   int howLongToBackUp = 1500; // ms that we back up to clear obstacle. How long should it be?
-   int r_motor_val;
-   int l_motor_val;
-   Serial.print("crash state, side: ");
-   Serial.println(crashSide);
-  if (crashSide == 0){
-    // that means we collided on the left. how do we use that info?
-    // Should we back up a slightly different direction?
-    l_motor_val = 0;
-    r_motor_val = 1;
-  } else {
-    // if crashSide is 1, that means we collided on the right. how do we use that info?
-    r_motor_val = 0;
-    l_motor_val = 1;
-  }
-  //The robot should back out of the obstacle area
-  motors.commandMotors(1,1); // back up according to values from the crashSide check
-  delay(howLongToBackUp); // wait for a few ms to get far enough back
-  motors.commandMotors(0, 0); // stop motors for scanning
- 
-  //Scan the area around the obstacle to search for routes around it if any
-  //Seek ‘empty’ direction, if two open paths go right
-  // so the scanAreaForGap should return a double, corresponding to an angle from the robot that looks more open
-  // the code for this function is in irDistance.cpp
-//  double emptyDir = -180;
-//  emptyDir = irSensor.scanAreaForGap();
-//  Serial.print("irSensor:");
-//  Serial.println(emptyDir);
-//  //If all directions are blocked back out further
-//  if (emptyDir == -180){
-//    // scanAreaForGap returns -180 if there are no distances greater than a threshold
-//    // This means we're still blocked, so we should back up and try again. We do that by leaving the
-//    // crashed flag true so this function will be called again
-//    return true;
-//  }
-//
-//  // now that we have a proper open angle, how should we proceed? Do we pick a navpoint in that direction? or just use 
-//  // commandMotors to turn that far, and how do we know how far we turned?
-//  // I'm not sure yet how we do this. 
-//  
-//  // return false to clear CRASH_FLAG so we continue normal movement
-  return false;
+uint32_t updateCallback(uint32_t currentTime) {
+  /* Periodically set the flag to require the calculation of path around global obstacles.
+   * Global obstacles don't move, or in the case of robots, don't move very fast. There
+   * is no reason to update this every single loop. 
+    */
+  updateState = true;
+  return (currentTime + CORE_TICK_RATE * 250);
+}
+
+void handleCrashL(){
+  // interrupt handler for limit switch external interrupt on left side
+  CRASH_FLAG = true;
+  CRASH_SIDE = 0;
+}
+
+void handleCrashR(){
+  // interrupt handler for limit switch external interrupt on right side
+  CRASH_FLAG = true;
+  CRASH_SIDE = 1;
 }

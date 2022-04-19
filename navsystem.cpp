@@ -111,25 +111,12 @@ NavPoint testCourse[] = {
 
 void NavSystem::setHomeBase(RobotPose myStartPose){
   // automatically set your home base coordinates according to what quadrant your robot starts up in
-  
-//    if (myStartPose.x < 1100.0){
-//        if (myStartPose.y > 1100.0){
-//            // home base is in upper left quadrant
-//            editNavPoint(&home_base,250.0, 1850.0);
-//        } else {
-//            // home base is in lower left quadrant
-//            editNavPoint(&home_base,250.0, 250.0);
-//        }       
-//    } else {
-//        if (myStartPose.y > 1000.0){
-//            // home base is in upper right quadrant
-//            editNavPoint(&home_base,1850.0, 1850.0);
-//        } else {
-//            // home base is in lower right quadrant
-//            editNavPoint(&home_base,1850.0, 250.0);
-//        }
-   // }
 
+  if (myStartPose.x > 1000){
+    editNavPoint(&home_base,1850.0, 1850.0);
+  } else {
+    editNavPoint(&home_base,250.0, 250.0);
+  }
 } //setHomeBase();
 
 NavPoint NavSystem::getPnw(NavPoint navpoint, RobotPose robot){
@@ -245,7 +232,7 @@ NavPoint NavSystem::getClosestObstacleInPath(){
     int closestDist = 3000;
     NavPoint Po_r; // position of obstacle relative to robot
     
-   for (int i = 0; i < 40; i++){  
+   for (int i = 0; i <= 40; i++){  
       // iterate through the robots
       RobotPose pose = robotPoses[i];
 
@@ -277,6 +264,10 @@ NavPoint NavSystem::getClosestObstacleInPath(){
                  closestObs.x = Po_r.x;
                  closestObs.y = Po_r.y;
                  closestDist = obsDist; // this is the newest closest obstacle
+                if (pose.ID < 20){
+                    closestRobotXY.x = Po_r.x;
+                    closestRobotXY.y = Po_r.y;
+               }
             }
         }
       } 
@@ -291,6 +282,7 @@ void NavSystem::checkPathToGoal(NavPoint* currentNavPoint){
    *  If it finds an obstacle that is in the danger zone, it takes the closest one and tries to avoid it 
    *  by the shortest path. 
    */
+   long beginTime = millis();
 
   // get NavPoint for goal wrt robot
   NavPoint Pg_r = getPnr(goalPoint, robotPoses[MY_ROBOT_ID]);
@@ -307,11 +299,11 @@ void NavSystem::checkPathToGoal(NavPoint* currentNavPoint){
       // if obstacle is > 0, its on our left. So we go right. 
       if (Po_r.y >= 0){
         Po_r.y = Po_r.y - OBSAVOID_OFFSET;
-        Po_r.x = 600; // forward and to the right
+           
       } else {
         // if obstacle is < 0, its on our right. so we go left.
         Po_r.y = Po_r.y + OBSAVOID_OFFSET;
-        Po_r.x = 600; // forward, and to the left
+        
       }
   
       // 
@@ -402,6 +394,62 @@ void NavSystem::CountBalls()
     ballcaptured ++;
     Serial.print("ballCaptured: ");
     Serial.println(ballcaptured);
+  }
 }
 
+
+bool NavSystem::crashState(bool crashSide){
+  /* Korey's local obstacle avoidance logic, 4-11-22
+   * This function is used when a limit switch triggers and the CRASH_FLAG flag is true.
+   * If an obstacle occurs via the crash state, the IR sensor is then activated. 
+   * Once activated the robot is to back out and scan the area searching for a new safe path.
+   */
+   int howLongToBackUp = 1500; // ms that we back up to clear obstacle. How long should it be?
+   int r_motor_val;
+   int l_motor_val;
+   Serial.print("crash state, side: ");
+   Serial.println(crashSide);
+  if (crashSide == 0){
+    // that means we collided on the left. how do we use that info?
+    // Should we back up a slightly different direction?
+    l_motor_val = 0;
+    r_motor_val = 1;
+  } else {
+    // if crashSide is 1, that means we collided on the right. how do we use that info?
+    r_motor_val = 0;
+    l_motor_val = 1;
+  }
+  //The robot should back out of the obstacle area
+  motors.commandMotors(l_motor_val,r_motor_val); // back up according to values from the crashSide check
+  delay(howLongToBackUp); // wait for a few ms to get far enough back
+  motors.commandMotors(0, 0); // stop motors for scanning
+ 
+  //Scan the area around the obstacle to search for routes around it if any
+  //Seek ‘empty’ direction, if two open paths go right
+  // so the scanAreaForGap should return a double, corresponding to an angle from the robot that looks more open
+  // the code for this function is in irDistance.cpp
+//  double emptyDir = -180;
+//  emptyDir = irSensor.scanAreaForGap();
+//  Serial.print("irSensor:");
+//  Serial.println(emptyDir);
+//  //If all directions are blocked back out further
+//  if (emptyDir == -180){
+//    // scanAreaForGap returns -180 if there are no distances greater than a threshold
+//    // This means we're still blocked, so we should back up and try again. We do that by leaving the
+//    // crashed flag true so this function will be called again
+//    return true;
+//  }
+//
+//  // now that we have a proper open angle, how should we proceed? Do we pick a navpoint in that direction? or just use 
+//  // commandMotors to turn that far, and how do we know how far we turned?
+//  // I'm not sure yet how we do this. 
+//  
+//  // return false to clear CRASH_FLAG so we continue normal movement
+  return false;
+}
+
+void NavSystem::setPathByAngle(double targetAngle){
+  //do somethings
+  Serial.print("setPath to ");
+  Serial.println(targetAngle);
 }

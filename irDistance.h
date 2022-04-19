@@ -43,7 +43,7 @@ const int EncoderBPin = 20;
 const int MotorDirectionPin = 4;
 const int MotorPWMPin = 3;
 int irMotorSpeed = 180;
-
+int stupidCloseWeAreStillBlocked = 400; // if distance is still less than this distance after crashState, keep crashState true
 
 //// Global variables for quadrature decoder
 volatile long irPosition = 0;
@@ -51,6 +51,7 @@ static volatile char irLastLeftA;
 static volatile char irLastLeftB;
 static volatile bool irErrorLeft;
 volatile int irAngle;
+double pathAngle;
 
 // Global variables for the timer interrupt handling
 int irSampleTime = 10;
@@ -67,7 +68,8 @@ class IrSensor {
     double scanAreaForGap();
     double pidCalc(PIDVars *vars, double currentError);
     void moveIrSensor(int);
-    
+    bool checkFrontIrDistance(int);
+    double scanForPath();
   private:
     float getDegreeHeading(int);
     int calDist[10] = {5, 10, 15, 20, 25, 30, 40, 50, 60, 70};

@@ -72,8 +72,8 @@
 #define CLOSE_ENOUGH 200
 //#define OBSAVOID_OFFSET 75 // offset to avoid obstacles in our path
 const float OBSAVOID_OFFSET = 75.0;
-const int WORRYDISTANCE = 800; // how close should an obstacle be before we worry about avoiding it?
-const int ROBOBUMPER = 200; // what is the radius of our robobumper, ie 2*ROBOBUMPER gap should allow robot to pass through without clipping. this include radius of obs.
+const int WORRYDISTANCE = 300; // how close should an obstacle be before we worry about avoiding it?
+const int ROBOBUMPER = 100; // what is the radius of our robobumper, ie 2*ROBOBUMPER gap should allow robot to pass through without clipping. this include radius of obs.
 const int ARENA_MIN = -250;
 const int ARENA_MAX = 2500;
 const int BASE_RADIUS = 500;
@@ -89,6 +89,7 @@ class NavPoint {
 class NavSystem
 {  
   public:
+    NavPoint closestRobotXY;
     bool closeEnough(RobotPose robot, NavPoint point);
     void update(NavPoint*);
     void CountBalls();
@@ -107,13 +108,17 @@ class NavSystem
     void checkPathToGoal(NavPoint* currentNavPoint);
     void depositTheCash();
     NavPoint getClosestObstacleInPath();
+    double convRadDegs(float);
+    bool crashState(bool);
+    void setPathByAngle(double);
+    
 
   private:
     int currNav = 0;
     int maxNav = 10;
     bool waypointReached = false;
     double convDegRads(float);
-    double convRadDegs(float);
+
 };
 
 NavPoint navList[10] = {{500., 500.0},

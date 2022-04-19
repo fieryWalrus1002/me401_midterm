@@ -57,7 +57,7 @@
 #define maxInput 1.0
 #define minInput -1.0
 
-
+void orientSunbeam();
 
 struct RobotVars{
   float v;
@@ -129,5 +129,5 @@ class Motors {
 Motors motors;
 Servo gateServo; 
 //IrMotor irMotor;
-
+Servo sunbeamServo;
 #endif

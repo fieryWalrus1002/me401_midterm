@@ -57,17 +57,13 @@ double IrSensor::scanAreaForGap(){
   int maxAngle = 180;
   double bestAngle = 0; // holds the best angle corresponding to the highest distance
   int highestDistance = 0; // the best really sucks to begin with so anything it finds is okay
-  int stupidCloseWeAreStillBlocked = 400; // how far away is stupid close? Change it to something sensible
+  
   
   for (int i = minAngle; i < maxAngle; i++){
     // this code sucks because its going to iterate through ALL the angles from -90 to 90. Maybe a set number of angles to check?
     // or have the angle be an i value multiplied by something? i don't know here is i * 30.
     int angle = i * 30;
-    Serial.print("irSensorAngle: ");
-    Serial.print(angle);
-    Serial.print(", distance to obstacle: ");
     int obsDist = getDistance(angle); // get the distance at this angle
-    Serial.println(obsDist);
     
     if (obsDist > highestDistance){
       // if the measured distance is more than our current highest, its more open so we mark it as our current bestAngle
@@ -79,12 +75,9 @@ double IrSensor::scanAreaForGap(){
   if (highestDistance < stupidCloseWeAreStillBlocked){
     // uh oh we're really close on even the best one, so I guess we're still blocked
     // tell it that the best angle is straight backwards
-    Serial.println("stupid close");
     return -180;
   } else {
     // if the best angle is open enough, ie greater than our stupid close variable, 
-    Serial.print("best angle is :");
-    Serial.println(bestAngle);
     return bestAngle;
   }
 };
@@ -123,7 +116,8 @@ int IrSensor::getRawDistance(int theta){
 
 int IrSensor::getDistance(int theta){
   int irVal = getRawDistance(theta);
-  int calDist = polyFit(irVal);
+  int calDist = polyFit(irVal); 
+  calDist *= 10; // in mm, fit was for cm
   return calDist;
 }
 
@@ -155,15 +149,13 @@ float IrSensor::getDegreeHeading(int bestTheta)
   return degreeHeading;
 }
 
-
-
 double IrSensor::pidCalc(PIDVars *vars, double currentError){
   vars->_integral = 0;
   double propError = (vars->Kp) * currentError;
   float dampError = (vars->Kd) * ((currentError - (vars->_prevError))); // derivative of last time step
   float intError = (vars->Ki) * vars->_integral;
 
-  double output = propError + dampError + intError;
+  double output = propError;
   vars->_prevError = currentError;
   
   if (output >(vars->maxLimit))
@@ -172,4 +164,20 @@ double IrSensor::pidCalc(PIDVars *vars, double currentError){
     output = vars->minLimit;
 
   return output;
+}
+
+bool IrSensor::checkFrontIrDistance(int closeDistance){
+  int dist = getDistance(0);
+
+  if (dist < closeDistance){
+
+    return false;
+  } else {
+  
+    return true;
+  }
+}
+
+double IrSensor::scanForPath(){
+  return 0.0;
 }
